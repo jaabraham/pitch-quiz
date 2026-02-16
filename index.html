@@ -299,8 +299,8 @@
             <!-- Thumbnails dynamically inserted here -->
         </div>
         
-        <!-- Test High Score Button (dev mode only) -->
-        <button id="test-highscore-btn" class="hide-on-quiz hidden" style="
+        <!-- Test High Score Button (dev mode only) - NOT using hide-on-quiz class -->
+        <button id="test-highscore-btn" class="hidden" style="
             margin-top: 20px;
             padding: 8px 16px;
             font-size: 0.85em;
@@ -635,6 +635,9 @@
         if (window.quizUI) window.quizUI.classList.remove('hidden');
         if (window.frontPage) window.frontPage.classList.add('hidden');
         document.querySelectorAll('.hide-on-quiz').forEach(el => el.classList.add('hidden'));
+        // Also hide test button if it exists (not part of hide-on-quiz)
+        var testBtn = document.getElementById('test-highscore-btn');
+        if (testBtn) testBtn.classList.add('hidden');
         var thumbList = document.getElementById('video-thumb-list');
         if (thumbList) thumbList.classList.add('hidden');
         if (window.startQuizOverlay) window.startQuizOverlay.style.display = 'flex';
