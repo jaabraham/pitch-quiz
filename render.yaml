@@ -1,0 +1,13 @@
+# Render Blueprint for automatic deployment
+# See: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: pitch-recognition-quiz
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

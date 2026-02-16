@@ -1,0 +1,53 @@
+[
+    {
+      "videoId": "8ZYPZIwj2u0",
+      "description": "Pitch Recognition Drill 1",
+      "answerWindows": [
+        { "startTime": "0:00", "correctAnswer": 2, "clipIndex": 0 },
+        { "startTime": "0:10", "correctAnswer": 2, "clipIndex": 1 },
+        { "startTime": "0:21", "correctAnswer": 1, "clipIndex": 2 },
+        { "startTime": "0:35", "correctAnswer": 2, "clipIndex": 3 },
+        { "startTime": "0:46", "correctAnswer": 1, "clipIndex": 4 },
+        { "startTime": "0:56", "correctAnswer": 1, "clipIndex": 5 },
+        { "startTime": "1:10", "correctAnswer": 1, "clipIndex": 6 },
+        { "startTime": "1:21", "correctAnswer": 2, "clipIndex": 7 },
+        { "startTime": "1:33", "correctAnswer": 1, "clipIndex": 8 },
+        { "startTime": "1:45", "correctAnswer": 1, "clipIndex": 9 },
+        { "startTime": "1:57", "correctAnswer": 1, "clipIndex": 10 },
+        { "startTime": "2:09", "correctAnswer": 1, "clipIndex": 11 },
+        { "startTime": "2:22", "correctAnswer": 1, "clipIndex": 12 },
+        { "startTime": "2:36", "correctAnswer": 1, "clipIndex": 13 },
+        { "startTime": "2:51", "correctAnswer": 1, "clipIndex": 14 }
+      ]
+    },
+    {
+      "videoId": "zztsRIouSBA",
+      "description": "Pitch Recognition Drill 2",
+      "answerWindows": [
+        { "startTime": "0:13", "correctAnswer": 1, "clipIndex": 0 },
+        { "startTime": "0:20", "correctAnswer": 2, "clipIndex": 1 },
+        { "startTime": "0:26", "correctAnswer": 2, "clipIndex": 2 },
+        { "startTime": "0:33", "correctAnswer": 1, "clipIndex": 3 },
+        { "startTime": "0:40", "correctAnswer": 2, "clipIndex": 4 },
+        { "startTime": "0:46", "correctAnswer": 1, "clipIndex": 5 },
+        { "startTime": "0:53", "correctAnswer": 1, "clipIndex": 6 },
+        { "startTime": "1:00", "correctAnswer": 2, "clipIndex": 7 },
+        { "startTime": "1:08", "correctAnswer": 2, "clipIndex": 8 },
+        { "startTime": "1:16", "correctAnswer": 1, "clipIndex": 9 },
+        { "startTime": "1:23", "correctAnswer": 2, "clipIndex": 10 },
+        { "startTime": "1:31", "correctAnswer": 1, "clipIndex": 11 },
+        { "startTime": "1:23", "correctAnswer": 1, "clipIndex": 12 },
+        { "startTime": "1:37", "correctAnswer": 2, "clipIndex": 13 },
+        { "startTime": "1:44", "correctAnswer": 1, "clipIndex": 14 },
+        { "startTime": "1:51", "correctAnswer": 1, "clipIndex": 15 },
+        { "startTime": "1:59", "correctAnswer": 2, "clipIndex": 16 },
+        { "startTime": "2:07", "correctAnswer": 1, "clipIndex": 17 },
+        { "startTime": "2:13", "correctAnswer": 1, "clipIndex": 18 },
+        { "startTime": "2:20", "correctAnswer": 1, "clipIndex": 19 },
+        { "startTime": "2:26", "correctAnswer": 2, "clipIndex": 20 },
+        { "startTime": "2:32", "correctAnswer": 2, "clipIndex": 21 },
+        { "startTime": "2:38", "correctAnswer": 1, "clipIndex": 22 },
+        { "startTime": "2:46", "correctAnswer": 1, "clipIndex": 23 }
+      ]
+    }
+]

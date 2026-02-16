@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Recognition Quiz</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #23272b 100%);
+            font-family: 'Proxima Nova', Arial, sans-serif;
+            color: #fff;
+            margin: 0;
+            min-height: 100vh;
+        }
+        #front-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0 0 0;
+        }
+        .baseball-logo {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+        .main-title {
+            font-family: 'Bebas Neue', Impact, Arial, sans-serif;
+            font-size: 2.2em;
+            letter-spacing: 2px;
+            color: #ffbb00;
+            text-shadow: 2px 2px 8px #000, 0 0 10px #1e88e5;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #b0b0b0;
+            font-size: 1.1em;
+            margin-bottom: 18px;
+        }
+        #user-info {
+            margin: 8px 0 0 0;
+            font-size: 1em;
+            color: #ffbb00;
+            font-weight: bold;
+        }
+        #top-scores {
+            width: 100%;
+            max-width: 340px;
+            margin: 0 auto 18px auto;
+            background: #181818;
+            border-radius: 10px;
+            padding: 12px 10px 10px 10px;
+            box-shadow: 0 2px 10px #0007;
+        }
+        #top-scores h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1em;
+            color: #43a047;
+            letter-spacing: 1px;
+        }
+        #top-scores-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #top-scores-list li {
+            font-size: 1em;
+            color: #fff;
+            padding: 4px 0;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #2224;
+            align-items: center;
+        }
+        #top-scores-list li:last-child {
+            border-bottom: none;
+        }
+        #top-scores-list li.current-user {
+            background: #1e88e533;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 0 -8px;
+        }
+        .user-indicator {
+            background: #43a047;
+            color: #fff;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+        .video-thumb-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .video-thumb {
+            width: 130px;
+            cursor: pointer;
+            border-radius: 10px;
+            border: 2px solid #ffbb00;
+            overflow: hidden;
+            background: #23272b;
+            box-shadow: 0 2px 8px #0008;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .video-thumb:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px #1e88e5aa;
+            border-color: #43a047;
+        }
+        .video-thumb img {
+            width: 100%;
+            display: block;
+            border-bottom: 2px solid #ffbb00;
+        }
+        .video-thumb-title {
+            font-size: 1.05em;
+            color: #fff;
+            padding: 7px 0 7px 0;
+            font-weight: bold;
+            text-align: center;
+            background: #181818;
+            width: 100%;
+        }
+        
+        /* Name Input Modal */
+        #name-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #name-modal-overlay.active {
+            display: flex;
+        }
+        #name-modal {
+            background: #23272b;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid #ffbb00;
+        }
+        #name-modal h3 {
+            margin: 0 0 8px 0;
+            color: #ffbb00;
+            font-size: 1.5em;
+        }
+        #name-modal .score-display {
+            font-size: 2em;
+            color: #43a047;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+        #name-modal p {
+            color: #b0b0b0;
+            margin: 8px 0;
+        }
+        #name-input {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 2px solid #444;
+            border-radius: 6px;
+            background: #181818;
+            color: #fff;
+            font-size: 1.1em;
+            box-sizing: border-box;
+        }
+        #name-input:focus {
+            outline: none;
+            border-color: #1e88e5;
+        }
+        #name-input.error {
+            border-color: #e53935;
+        }
+        #name-error {
+            color: #e53935;
+            font-size: 0.9em;
+            margin: -8px 0 12px 0;
+            min-height: 20px;
+        }
+        #submit-score-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(90deg, #1e88e5 60%, #43a047 100%);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #submit-score-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, #1565c0 60%, #2e7d32 100%);
+        }
+        #submit-score-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #skip-submit-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #888;
+            background: transparent;
+            border: 1px solid #444;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #skip-submit-btn:hover {
+            color: #fff;
+            border-color: #666;
+        }
+        
+        /* Stored name display */
+        #stored-name-display {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: #1e88e522;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        #stored-name-display.active {
+            display: flex;
+        }
+        #stored-name-display span {
+            color: #1e88e5;
+            font-weight: bold;
+        }
+        #change-name-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-decoration: underline;
+        }
+        #change-name-btn:hover {
+            color: #fff;
+        }
+        
+        /* Test button hover */
+        #test-highscore-btn:hover {
+            color: #ffbb00;
+            border-color: #ffbb00;
+        }
+        
+        /* Rate limit warning */
+        #rate-limit-warning {
+            display: none;
+            background: #e5393522;
+            border: 1px solid #e53935;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+            color: #ff8a80;
+            font-size: 0.9em;
+        }
+        #rate-limit-warning.active {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .main-title { font-size: 1.3em; }
+            .video-thumb { width: 100px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="front-page">
+        <img src="https://cdn-icons-png.flaticon.com/128/15386/15386882.png" class="baseball-logo hide-on-quiz" alt="Baseball Logo">
+        <div class="main-title hide-on-quiz">Pitch Recognition Challenge</div>
+        <div class="subtitle hide-on-quiz">Test your skills. Choose a pitcher. Climb the leaderboard!</div>
+        
+        <!-- Stored Name Display -->
+        <div id="stored-name-display" class="hide-on-quiz">
+            Playing as: <span id="stored-name-text"></span>
+            <button id="change-name-btn">Change</button>
+        </div>
+        
+        <div id="top-scores" class="hide-on-quiz">
+            <h3>🏆 Top 10 Scores</h3>
+            <ul id="top-scores-list"></ul>
+        </div>
+        
+        <div class="video-thumb-list hide-on-quiz" id="video-thumb-list">
+            <!-- Thumbnails dynamically inserted here -->
+        </div>
+        
+        <!-- Test High Score Button (Temporary) -->
+        <button id="test-highscore-btn" class="hide-on-quiz" style="
+            margin-top: 20px;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            color: #888;
+            background: transparent;
+            border: 1px dashed #555;
+            border-radius: 4px;
+            cursor: pointer;
+        ">🧪 Test High Score (9999)</button>
+    </div>
+
+    <!-- Name Input Modal -->
+    <div id="name-modal-overlay">
+        <div id="name-modal">
+            <h3>🎉 Top Score!</h3>
+            <div class="score-display" id="modal-score">0</div>
+            <p>You made the top 10! Enter your name:</p>
+            <input type="text" id="name-input" placeholder="Your name" maxlength="20" autocomplete="off">
+            <div id="name-error"></div>
+            <div id="rate-limit-warning">
+                ⚠️ Rate limit reached. You can submit 10 scores per hour.
+            </div>
+            <button id="submit-score-btn">Submit Score</button>
+            <button id="skip-submit-btn">Skip</button>
+        </div>
+    </div>
+
+    <!-- Quiz UI (hidden until video selected) -->
+    <div id="quiz-ui" class="hidden">
+        <div id="status-bar">
+            <span>Correct: <span id="correct-answers">0</span></span>
+            <span>Wrong: <span id="wrong-answers">0</span></span>
+            <span>Total Time: <span id="total-time">0.0</span>s</span>
+            <span>Current Time: <span id="current-time">0.0</span>s</span>
+        </div>
+        <div id="player-container" style="position:relative;">
+            <div id="player"></div>
+            <div id="start-quiz-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:20;">
+                <button id="start-quiz-btn-overlay" style="padding:20px 40px;font-size:1.5em;background:#43a047;color:#fff;border:none;border-radius:12px;box-shadow:0 2px 8px #0008;cursor:pointer;">Start Quiz</button>
+            </div>
+            <div id="feedback-overlay" class="hidden">
+                <span id="feedback-text-overlay"></span>
+            </div>
+        </div>
+        <div id="feedback-message">Waiting for video...</div>
+        <div id="answer-buttons-container" class="hidden">
+            <button id="offspeedBtn">Offspeed</button>
+            <button id="fastballBtn">Fastball</button>
+        </div>
+        <div id="scoreboard">
+            <div class="scoreboard-row">
+                <span>Time (ms): <span id="clip-time-ms">0</span></span>
+                <span>Clip: <span id="current-clip">1</span> | <span id="total-clips">?</span></span>
+            </div>
+            <div class="scoreboard-row">
+                <span>Percentage Correct: <span id="percentage-correct">0%</span></span>
+                <span>Score: <span id="scoreboard-score">0</span></span>
+            </div>
+        </div>
+        <div id="quiz-complete" class="hidden">
+            <h2>Quiz Complete!</h2>
+            <p>Final Score: <span id="final-score">0</span> / <span id="final-total-clips">?</span></p>
+            <button id="restartBtn">Play Again?</button>
+        </div>
+        <button id="back-to-front-btn" style="width:95%;padding:10px;font-size:1em;margin:10px 0;">Back to Home</button>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+    // --- Fingerprint & Anonymous Auth System ---
+    
+    // Generate a persistent device fingerprint
+    function getFingerprint() {
+        let fingerprint = localStorage.getItem('pitch_recognition_fp');
+        if (!fingerprint) {
+            // Generate a unique fingerprint using browser characteristics + random
+            const components = [
+                navigator.userAgent,
+                screen.width + 'x' + screen.height,
+                screen.colorDepth,
+                navigator.language,
+                new Date().getTimezoneOffset(),
+                Math.random().toString(36).substring(2, 15)
+            ];
+            fingerprint = btoa(components.join('|')).substring(0, 32);
+            localStorage.setItem('pitch_recognition_fp', fingerprint);
+        }
+        return fingerprint;
+    }
+    
+    // Get stored display name
+    function getStoredName() {
+        return localStorage.getItem('pitch_recognition_name') || '';
+    }
+    
+    // Store display name
+    function storeName(name) {
+        localStorage.setItem('pitch_recognition_name', name.trim());
+        updateStoredNameDisplay();
+    }
+    
+    // Update the stored name display on homepage
+    function updateStoredNameDisplay() {
+        const name = getStoredName();
+        const display = document.getElementById('stored-name-display');
+        const text = document.getElementById('stored-name-text');
+        if (name && display && text) {
+            text.textContent = name;
+            display.classList.add('active');
+        } else if (display) {
+            display.classList.remove('active');
+        }
+    }
+    
+    // Clear stored name
+    function clearStoredName() {
+        localStorage.removeItem('pitch_recognition_name');
+        updateStoredNameDisplay();
+    }
+    
+    // Check if score qualifies for top 10
+    async function isTopScore(score) {
+        try {
+            const res = await fetch('topscores.json');
+            const scores = await res.json();
+            if (scores.length < 10) return true;
+            const lowestTopScore = scores[scores.length - 1]?.score || 0;
+            return score > lowestTopScore;
+        } catch (err) {
+            console.error('Error checking top scores:', err);
+            return false;
+        }
+    }
+    
+    // Submit score to server
+    async function submitScore(username, score) {
+        const fingerprint = getFingerprint();
+        const response = await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, score, fingerprint })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to submit score');
+        }
+        
+        return data;
+    }
+    
+    // Check if device has submitted a score recently (within 1 hour)
+    async function getLockedNameForDevice() {
+        try {
+            const res = await fetch('topscores.json');
+            const scores = await res.json();
+            const fingerprint = getFingerprint();
+            const oneHourAgo = Date.now() - (60 * 60 * 1000);
+            
+            const recentScore = scores.find(s => 
+                s.fingerprint === fingerprint && 
+                new Date(s.date).getTime() > oneHourAgo
+            );
+            
+            return recentScore ? recentScore.username : null;
+        } catch (err) {
+            console.error('Error checking locked name:', err);
+            return null;
+        }
+    }
+    
+    // Show name input modal
+    async function showNameModal(score) {
+        const modal = document.getElementById('name-modal-overlay');
+        const scoreDisplay = document.getElementById('modal-score');
+        const nameInput = document.getElementById('name-input');
+        const errorDiv = document.getElementById('name-error');
+        const submitBtn = document.getElementById('submit-score-btn');
+        const rateLimitWarning = document.getElementById('rate-limit-warning');
+        
+        scoreDisplay.textContent = score;
+        errorDiv.textContent = '';
+        rateLimitWarning.classList.remove('active');
+        
+        // Check if name is locked for this device
+        const lockedName = await getLockedNameForDevice();
+        
+        if (lockedName) {
+            // Name is locked - pre-fill and disable editing
+            nameInput.value = lockedName;
+            nameInput.disabled = true;
+            nameInput.style.background = '#333';
+            nameInput.style.color = '#888';
+            errorDiv.innerHTML = `<span style="color: #ffbb00;">ℹ️ Using locked name "${lockedName}" (1 hour lock)</span>`;
+        } else {
+            // Name is not locked - allow editing
+            nameInput.disabled = false;
+            nameInput.style.background = '#181818';
+            nameInput.style.color = '#fff';
+            
+            // Pre-fill with stored name if available
+            const storedName = getStoredName();
+            if (storedName) {
+                nameInput.value = storedName;
+            } else {
+                nameInput.value = '';
+            }
+            nameInput.focus();
+        }
+        
+        modal.classList.add('active');
+        errorDiv.textContent = '';
+        rateLimitWarning.classList.remove('active');
+        
+        return new Promise((resolve) => {
+            let submitted = false;
+            
+            async function handleSubmit() {
+                if (submitted) return;
+                
+                const name = nameInput.value.trim();
+                
+                // Validate
+                if (!name) {
+                    errorDiv.textContent = 'Please enter a name';
+                    nameInput.classList.add('error');
+                    return;
+                }
+                
+                if (!/^[a-zA-Z0-9 ]{2,20}$/.test(name)) {
+                    errorDiv.textContent = 'Name must be 2-20 characters (letters, numbers, spaces)';
+                    nameInput.classList.add('error');
+                    return;
+                }
+                
+                nameInput.classList.remove('error');
+                errorDiv.textContent = '';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                try {
+                    await submitScore(name, score);
+                    storeName(name);
+                    submitted = true;
+                    modal.classList.remove('active');
+                    
+                    // Reload scores to show updated leaderboard
+                    await loadTopScores();
+                    
+                    // Show success message
+                    alert(`Score submitted successfully! You're on the leaderboard!`);
+                    resolve(true);
+                } catch (err) {
+                    console.error('Submit error:', err);
+                    errorDiv.textContent = err.message;
+                    
+                    if (err.message.includes('Rate limit')) {
+                        rateLimitWarning.classList.add('active');
+                    }
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Score';
+                }
+            }
+            
+            function handleSkip() {
+                if (!submitted) {
+                    submitted = true;
+                    modal.classList.remove('active');
+                    resolve(false);
+                }
+            }
+            
+            // Remove old listeners and add new ones
+            submitBtn.onclick = handleSubmit;
+            document.getElementById('skip-submit-btn').onclick = handleSkip;
+            
+            nameInput.onkeypress = (e) => {
+                if (e.key === 'Enter') handleSubmit();
+            };
+            
+            nameInput.oninput = () => {
+                nameInput.classList.remove('error');
+                errorDiv.textContent = '';
+            };
+        });
+    }
+    
+    // --- Front Page Logic ---
+    window.frontPage = window.frontPage || document.getElementById('front-page');
+    window.quizUI = window.quizUI || document.getElementById('quiz-ui');
+    window.videoThumbList = window.videoThumbList || document.getElementById('video-thumb-list');
+    window.userInfo = window.userInfo || document.getElementById('user-info');
+    window.topScoresList = window.topScoresList || document.getElementById('top-scores-list');
+    window.backToFrontBtn = window.backToFrontBtn || document.getElementById('back-to-front-btn');
+
+    let selectedVideoId = null;
+    let selectedVideoDesc = '';
+    let allVideos = [];
+    let topScores = [];
+
+    // --- Show/Hide UI ---
+    function showFrontPage() {
+        if (!window.frontPage || !window.quizUI) return;
+        window.frontPage.classList.remove('hidden');
+        window.quizUI.classList.add('hidden');
+        selectedVideoId = null;
+        selectedVideoDesc = '';
+        document.querySelectorAll('.hide-on-quiz').forEach(el => el.classList.remove('hidden'));
+        var thumbList = document.getElementById('video-thumb-list');
+        if (thumbList) thumbList.classList.remove('hidden');
+        loadVideosAndThumbnails();
+        loadTopScores();
+    }
+    
+    function showQuizUI() {
+        if (!window.frontPage || !window.quizUI) return;
+        window.frontPage.classList.add('hidden');
+        window.quizUI.classList.remove('hidden');
+    }
+
+    function showQuizUIOnly() {
+        if (window.quizUI) window.quizUI.classList.remove('hidden');
+        if (window.frontPage) window.frontPage.classList.add('hidden');
+        document.querySelectorAll('.hide-on-quiz').forEach(el => el.classList.add('hidden'));
+        var thumbList = document.getElementById('video-thumb-list');
+        if (thumbList) thumbList.classList.add('hidden');
+        if (window.startQuizOverlay) window.startQuizOverlay.style.display = 'flex';
+        if (window.feedbackMessage) window.feedbackMessage.textContent = "Player Ready. Waiting to start quiz...";
+    }
+
+    // --- Load Videos and Render Thumbnails ---
+    async function loadVideosAndThumbnails() {
+        if (!window.videoThumbList) return;
+        try {
+            const res = await fetch('videos.json');
+            allVideos = await res.json();
+            window.videoThumbList.innerHTML = '';
+            allVideos.forEach(video => {
+                const thumbUrl = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+                const div = document.createElement('div');
+                div.className = 'video-thumb';
+                div.innerHTML = `<img src="${thumbUrl}" alt="Video Thumbnail">
+                    <div class="video-thumb-title">${video.description}</div>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.hide-on-quiz').forEach(el => el.classList.add('hidden'));
+                    var thumbList = document.getElementById('video-thumb-list');
+                    if (thumbList) thumbList.classList.add('hidden');
+                    window.startQuizForVideo(video.videoId);
+                };
+                window.videoThumbList.appendChild(div);
+            });
+        } catch (err) {
+            console.error('Error loading videos:', err);
+        }
+    }
+
+    // --- Load Top Scores ---
+    async function loadTopScores() {
+        if (!window.topScoresList) return;
+        try {
+            const res = await fetch('topscores.json');
+            const scores = await res.json();
+            topScores = scores.slice(0, 10);
+            renderTopScores();
+        } catch (err) {
+            console.error('Error loading top scores:', err);
+        }
+    }
+    
+    function renderTopScores() {
+        if (!window.topScoresList) return;
+        const fingerprint = getFingerprint();
+        window.topScoresList.innerHTML = '';
+        
+        topScores.forEach((entry, idx) => {
+            const li = document.createElement('li');
+            const isCurrentUser = entry.fingerprint === fingerprint;
+            
+            if (isCurrentUser) {
+                li.classList.add('current-user');
+            }
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.innerHTML = `#${idx+1} ${entry.username}${isCurrentUser ? '<span class="user-indicator">YOU</span>' : ''}`;
+            
+            const scoreSpan = document.createElement('span');
+            scoreSpan.textContent = entry.score.toLocaleString();
+            
+            li.appendChild(nameSpan);
+            li.appendChild(scoreSpan);
+            window.topScoresList.appendChild(li);
+        });
+    }
+
+    // --- Change Name Button ---
+    document.getElementById('change-name-btn')?.addEventListener('click', () => {
+        clearStoredName();
+        alert('Name cleared. You can enter a new name when you achieve a top score!');
+    });
+    
+    // --- Test High Score Button (Temporary) ---
+    document.getElementById('test-highscore-btn')?.addEventListener('click', async () => {
+        await showNameModal(9999);
+        await loadTopScores();
+    });
+
+    // --- Back to Home ---
+    if (window.backToFrontBtn) window.backToFrontBtn.onclick = () => {
+        window.history.replaceState({}, '', window.location.pathname);
+        showFrontPage();
+        if (window.stopPlaybackTimer) window.stopPlaybackTimer();
+    };
+
+    // --- Save Top Score (Hooked into quiz complete) ---
+    window.saveTopScoreIfNeeded = async function(score) {
+        const qualifies = await isTopScore(score);
+        
+        if (qualifies) {
+            await showNameModal(score);
+        }
+        
+        // Always reload scores to show latest
+        await loadTopScores();
+    };
+
+    // --- On Load ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize fingerprint
+        getFingerprint();
+        updateStoredNameDisplay();
+        
+        await loadVideosAndThumbnails();
+        await loadTopScores();
+        showFrontPage();
+    });
+
+    // --- Hook into quiz complete to save score ---
+    setTimeout(() => {
+        if (window.endQuiz) {
+            const origEndQuiz = window.endQuiz;
+            window.endQuiz = function() {
+                origEndQuiz();
+                const score = parseInt(document.getElementById('final-score').textContent, 10) || 0;
+                window.saveTopScoreIfNeeded(score);
+            };
+        }
+    }, 500);
+
+    // --- On Load: wire up overlay button ---
+    document.addEventListener('DOMContentLoaded', () => {
+        window.startQuizOverlay = document.getElementById('start-quiz-overlay');
+        window.startQuizBtnOverlay = document.getElementById('start-quiz-btn-overlay');
+        if (window.startQuizBtnOverlay) {
+            window.startQuizBtnOverlay.onclick = function() {
+                if (window.startQuizOverlay) window.startQuizOverlay.style.display = 'none';
+                if (window.startQuiz) window.startQuiz();
+            };
+        }
+    });
+
+    // --- Start Quiz logic (called by overlay button) ---
+    window.startQuiz = function() {
+        if (window.player && typeof window.player.playVideo === 'function') {
+            window.player.playVideo();
+        }
+        if (window.startPlaybackTimer) window.startPlaybackTimer();
+    };
+    </script>
+</body>
+</html>

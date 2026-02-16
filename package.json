@@ -1,0 +1,16 @@
+{
+  "name": "pitch-recognition-quiz",
+  "version": "1.0.0",
+  "description": "Baseball pitch recognition quiz with anonymous high scores",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

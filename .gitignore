@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Keep data files (we want scores to persist)
+# topscores.json
+# users.json

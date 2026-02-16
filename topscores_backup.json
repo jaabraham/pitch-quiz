@@ -1,0 +1,86 @@
+[
+  {
+    "username": "Grayson",
+    "score": 21877,
+    "fingerprint": "legacy_entry_001",
+    "ipHash": "legacy_hash_001",
+    "date": "2025-06-12T20:40:32.006Z"
+  },
+  {
+    "username": "CoachScooter",
+    "score": 21763,
+    "fingerprint": "legacy_entry_002",
+    "ipHash": "legacy_hash_002",
+    "date": "2025-06-12T14:58:01.886Z"
+  },
+  {
+    "username": "Grayson",
+    "score": 21615,
+    "fingerprint": "legacy_entry_001",
+    "ipHash": "legacy_hash_001",
+    "date": "2025-06-12T18:11:55.240Z"
+  },
+  {
+    "username": "Sriyan meka",
+    "score": 20341,
+    "fingerprint": "legacy_entry_003",
+    "ipHash": "legacy_hash_003",
+    "date": "2025-06-11T02:25:09.247Z"
+  },
+  {
+    "username": "CoachScooter",
+    "score": 15093,
+    "fingerprint": "legacy_entry_002",
+    "ipHash": "legacy_hash_002",
+    "date": "2025-06-12T15:01:18.103Z"
+  },
+  {
+    "username": "TestPlayer",
+    "score": 15000,
+    "fingerprint": "test_fp_12345",
+    "ipHash": "eff8e7ca506627fe",
+    "date": "2026-02-16T19:19:45.083Z"
+  },
+  {
+    "username": "TestPlayer",
+    "score": 14500,
+    "fingerprint": "test_fp_12345",
+    "ipHash": "eff8e7ca506627fe",
+    "date": "2026-02-16T19:19:57.523Z"
+  },
+  {
+    "username": "Calev",
+    "score": 14307,
+    "fingerprint": "legacy_entry_004",
+    "ipHash": "legacy_hash_004",
+    "date": "2025-06-11T01:48:05.322Z"
+  },
+  {
+    "username": "CoachScooter",
+    "score": 14278,
+    "fingerprint": "legacy_entry_002",
+    "ipHash": "legacy_hash_002",
+    "date": "2025-06-11T23:26:31.909Z"
+  },
+  {
+    "username": "Grayson",
+    "score": 13760,
+    "fingerprint": "legacy_entry_001",
+    "ipHash": "legacy_hash_001",
+    "date": "2025-06-12T17:52:22.723Z"
+  },
+  {
+    "username": "Kyle_4",
+    "score": 12161,
+    "fingerprint": "legacy_entry_005",
+    "ipHash": "legacy_hash_005",
+    "date": "2025-06-11T01:58:56.765Z"
+  },
+  {
+    "username": "Kyle_4",
+    "score": 11847,
+    "fingerprint": "legacy_entry_005",
+    "ipHash": "legacy_hash_005",
+    "date": "2025-06-11T02:01:50.429Z"
+  }
+]
