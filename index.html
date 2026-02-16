@@ -795,10 +795,9 @@
     };
 
     // --- Version Info ---
-    const APP_VERSION = 'v1.0.2';
-    const APP_COMMIT = '2161a37';
+    const APP_VERSION = 'v1.0.3';
+    const APP_COMMIT = '8e4ab63';
     console.log(`%c Pitch Recognition Quiz ${APP_VERSION} (${APP_COMMIT}) `, 'background: #1e88e5; color: white; padding: 2px 6px; border-radius: 3px;');
-    console.log('Add ?dev=true to URL for test mode');
     
     // --- Dev Mode Check ---
     window.devModeEnabled = false;
@@ -817,9 +816,7 @@
         // Check dev mode and enable features if enabled
         if (isDevMode()) {
             window.devModeEnabled = true;
-            console.log('%c Dev mode enabled ', 'background: #e53935; color: white; padding: 2px 6px; border-radius: 3px;');
-            console.log('- Test High Score button visible');
-            console.log('- Delete buttons enabled on leaderboard');
+            console.log('%c Admin features added ', 'background: #e53935; color: white; padding: 2px 6px; border-radius: 3px;');
             const testBtn = document.getElementById('test-highscore-btn');
             if (testBtn) {
                 testBtn.classList.remove('hidden');
