@@ -257,6 +257,24 @@
             color: #fff;
         }
         
+        /* Delete button for dev mode */
+        .delete-btn {
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.75em;
+            cursor: pointer;
+            margin-right: 8px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .delete-btn:hover {
+            opacity: 1;
+            background: #c62828;
+        }
+        
         /* Rate limit warning */
         #rate-limit-warning {
             display: none;
@@ -683,6 +701,29 @@
         }
     }
     
+    // Delete score (dev mode only)
+    async function deleteScore(index) {
+        if (!confirm(`Delete score #${index + 1}?`)) return;
+        
+        try {
+            const response = await fetch(`/api/scores/${index}`, {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('Deleted:', data.deleted);
+                await loadTopScores();
+            } else {
+                alert('Failed to delete: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            alert('Failed to delete score');
+        }
+    }
+    
     function renderTopScores() {
         if (!window.topScoresList) return;
         const fingerprint = getFingerprint();
@@ -696,13 +737,27 @@
                 li.classList.add('current-user');
             }
             
-            const nameSpan = document.createElement('span');
-            nameSpan.innerHTML = `#${idx+1} ${entry.username}${isCurrentUser ? '<span class="user-indicator">YOU</span>' : ''}`;
+            // Left side container (delete btn + name)
+            const leftSpan = document.createElement('span');
+            
+            // Add delete button if in dev mode
+            if (window.devModeEnabled) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '×';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.title = 'Delete this score';
+                deleteBtn.onclick = () => deleteScore(idx);
+                leftSpan.appendChild(deleteBtn);
+            }
+            
+            const nameText = document.createElement('span');
+            nameText.innerHTML = `#${idx+1} ${entry.username}${isCurrentUser ? '<span class="user-indicator">YOU</span>' : ''}`;
+            leftSpan.appendChild(nameText);
             
             const scoreSpan = document.createElement('span');
             scoreSpan.textContent = entry.score.toLocaleString();
             
-            li.appendChild(nameSpan);
+            li.appendChild(leftSpan);
             li.appendChild(scoreSpan);
             window.topScoresList.appendChild(li);
         });
@@ -746,6 +801,8 @@
     console.log('Add ?dev=true to URL for test mode');
     
     // --- Dev Mode Check ---
+    window.devModeEnabled = false;
+    
     function isDevMode() {
         const params = new URLSearchParams(window.location.search);
         return params.get('dev') === 'true';
@@ -757,9 +814,12 @@
         getFingerprint();
         updateStoredNameDisplay();
         
-        // Check dev mode and show test button if enabled
+        // Check dev mode and enable features if enabled
         if (isDevMode()) {
-            console.log('Dev mode enabled - Test High Score button visible');
+            window.devModeEnabled = true;
+            console.log('%c Dev mode enabled ', 'background: #e53935; color: white; padding: 2px 6px; border-radius: 3px;');
+            console.log('- Test High Score button visible');
+            console.log('- Delete buttons enabled on leaderboard');
             const testBtn = document.getElementById('test-highscore-btn');
             if (testBtn) {
                 testBtn.classList.remove('hidden');

@@ -195,6 +195,40 @@ app.get('/api/check-name', async (req, res) => {
     }
 });
 
+// DELETE endpoint for removing scores (dev mode only - no auth for simplicity)
+app.delete('/api/scores/:index', async (req, res) => {
+    const index = parseInt(req.params.index, 10);
+    
+    if (isNaN(index) || index < 0) {
+        return res.status(400).json({ success: false, error: 'Invalid index' });
+    }
+    
+    try {
+        const scoresPath = path.join(__dirname, 'topscores.json');
+        const scoresData = await fs.promises.readFile(scoresPath, 'utf8');
+        let scores = JSON.parse(scoresData);
+        
+        if (index >= scores.length) {
+            return res.status(404).json({ success: false, error: 'Score not found' });
+        }
+        
+        // Remove the score at index
+        const deleted = scores.splice(index, 1)[0];
+        
+        // Save updated scores
+        await fs.promises.writeFile(scoresPath, JSON.stringify(scores, null, 2));
+        
+        res.json({ 
+            success: true, 
+            deleted: deleted,
+            message: `Deleted score for ${deleted.username}`
+        });
+    } catch (err) {
+        console.error('Error deleting score:', err);
+        res.status(500).json({ success: false, error: 'Failed to delete score' });
+    }
+});
+
 // Legacy endpoint (kept for backward compatibility, redirects to new endpoint)
 app.post('/topscores.json', (req, res) => {
     res.status(410).json({ 
