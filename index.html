@@ -562,12 +562,18 @@
                     resolve(true);
                 } catch (err) {
                     console.error('Submit error:', err);
-                    errorDiv.textContent = err.message;
+                    errorDiv.textContent = err.message || 'Failed to submit score. Please try again.';
                     
-                    if (err.message.includes('Rate limit')) {
+                    if (err.message && err.message.includes('Rate limit')) {
                         rateLimitWarning.classList.add('active');
                     }
                     
+                    if (err.message && err.message.includes('same name')) {
+                        // Name mismatch error - show info about locked name
+                        errorDiv.innerHTML = `<span style="color: #ffbb00;">⚠️ ${err.message}</span>`;
+                    }
+                    
+                    // ALWAYS re-enable button on error
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Score';
                 }
