@@ -257,12 +257,6 @@
             color: #fff;
         }
         
-        /* Test button hover */
-        #test-highscore-btn:hover {
-            color: #ffbb00;
-            border-color: #ffbb00;
-        }
-        
         /* Rate limit warning */
         #rate-limit-warning {
             display: none;
@@ -289,7 +283,6 @@
         <img src="https://cdn-icons-png.flaticon.com/128/15386/15386882.png" class="baseball-logo hide-on-quiz" alt="Baseball Logo">
         <div class="main-title hide-on-quiz">Pitch Recognition Challenge</div>
         <div class="subtitle hide-on-quiz">Test your skills. Choose a pitcher. Climb the leaderboard!</div>
-        <div id="version-display" style="font-size: 0.7em; color: #666; margin-bottom: 10px;">v1.0.2 (fix-modal)</div>
         
         <!-- Stored Name Display -->
         <div id="stored-name-display" class="hide-on-quiz">
@@ -306,8 +299,8 @@
             <!-- Thumbnails dynamically inserted here -->
         </div>
         
-        <!-- Test High Score Button (Temporary) -->
-        <button id="test-highscore-btn" class="hide-on-quiz" style="
+        <!-- Test High Score Button (dev mode only) -->
+        <button id="test-highscore-btn" class="hide-on-quiz hidden" style="
             margin-top: 20px;
             padding: 8px 16px;
             font-size: 0.85em;
@@ -743,11 +736,32 @@
         await loadTopScores();
     };
 
+    // --- Version Info ---
+    const APP_VERSION = 'v1.0.2';
+    const APP_COMMIT = '2161a37';
+    console.log(`%c Pitch Recognition Quiz ${APP_VERSION} (${APP_COMMIT}) `, 'background: #1e88e5; color: white; padding: 2px 6px; border-radius: 3px;');
+    console.log('Add ?dev=true to URL for test mode');
+    
+    // --- Dev Mode Check ---
+    function isDevMode() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('dev') === 'true';
+    }
+    
     // --- On Load ---
     document.addEventListener('DOMContentLoaded', async () => {
         // Initialize fingerprint
         getFingerprint();
         updateStoredNameDisplay();
+        
+        // Check dev mode and show test button if enabled
+        if (isDevMode()) {
+            console.log('Dev mode enabled - Test High Score button visible');
+            const testBtn = document.getElementById('test-highscore-btn');
+            if (testBtn) {
+                testBtn.classList.remove('hidden');
+            }
+        }
         
         await loadVideosAndThumbnails();
         await loadTopScores();
