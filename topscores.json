@@ -1,72 +1,12 @@
 [
-  {
-    "username": "SluggersAce",
-    "score": 100,
-    "fingerprint": "seed_001",
-    "ipHash": "seed_hash_001",
-    "date": "2026-02-16T14:00:00.000Z"
-  },
-  {
-    "username": "CurveBallKing",
-    "score": 100,
-    "fingerprint": "seed_002",
-    "ipHash": "seed_hash_002",
-    "date": "2026-02-16T14:01:00.000Z"
-  },
-  {
-    "username": "FastballFlash",
-    "score": 100,
-    "fingerprint": "seed_003",
-    "ipHash": "seed_hash_003",
-    "date": "2026-02-16T14:02:00.000Z"
-  },
-  {
-    "username": "StrikeZonePro",
-    "score": 100,
-    "fingerprint": "seed_004",
-    "ipHash": "seed_hash_004",
-    "date": "2026-02-16T14:03:00.000Z"
-  },
-  {
-    "username": "BattersEye",
-    "score": 100,
-    "fingerprint": "seed_005",
-    "ipHash": "seed_hash_005",
-    "date": "2026-02-16T14:04:00.000Z"
-  },
-  {
-    "username": "PitchMaster",
-    "score": 100,
-    "fingerprint": "seed_006",
-    "ipHash": "seed_hash_006",
-    "date": "2026-02-16T14:05:00.000Z"
-  },
-  {
-    "username": "DiamondKing",
-    "score": 100,
-    "fingerprint": "seed_007",
-    "ipHash": "seed_hash_007",
-    "date": "2026-02-16T14:06:00.000Z"
-  },
-  {
-    "username": "HomerunHero",
-    "score": 100,
-    "fingerprint": "seed_008",
-    "ipHash": "seed_hash_008",
-    "date": "2026-02-16T14:07:00.000Z"
-  },
-  {
-    "username": "SliderSage",
-    "score": 100,
-    "fingerprint": "seed_009",
-    "ipHash": "seed_hash_009",
-    "date": "2026-02-16T14:08:00.000Z"
-  },
-  {
-    "username": "MoundMaster",
-    "score": 100,
-    "fingerprint": "seed_010",
-    "ipHash": "seed_hash_010",
-    "date": "2026-02-16T14:08:00.000Z"
-  }
+  {"username": "SluggersAce", "score": 100, "fingerprint": "seed_001", "ipHash": "seed_hash_001", "date": "2026-02-16T14:00:00.000Z"},
+  {"username": "CurveBallKing", "score": 100, "fingerprint": "seed_002", "ipHash": "seed_hash_002", "date": "2026-02-16T14:01:00.000Z"},
+  {"username": "FastballFlash", "score": 100, "fingerprint": "seed_003", "ipHash": "seed_hash_003", "date": "2026-02-16T14:02:00.000Z"},
+  {"username": "StrikeZonePro", "score": 100, "fingerprint": "seed_004", "ipHash": "seed_hash_004", "date": "2026-02-16T14:03:00.000Z"},
+  {"username": "BattersEye", "score": 100, "fingerprint": "seed_005", "ipHash": "seed_hash_005", "date": "2026-02-16T14:04:00.000Z"},
+  {"username": "PitchMaster", "score": 100, "fingerprint": "seed_006", "ipHash": "seed_hash_006", "date": "2026-02-16T14:05:00.000Z"},
+  {"username": "DiamondKing", "score": 100, "fingerprint": "seed_007", "ipHash": "seed_hash_007", "date": "2026-02-16T14:06:00.000Z"},
+  {"username": "HomerunHero", "score": 100, "fingerprint": "seed_008", "ipHash": "seed_hash_008", "date": "2026-02-16T14:07:00.000Z"},
+  {"username": "SliderSage", "score": 100, "fingerprint": "seed_009", "ipHash": "seed_hash_009", "date": "2026-02-16T14:08:00.000Z"},
+  {"username": "MoundMaster", "score": 100, "fingerprint": "seed_010", "ipHash": "seed_hash_010", "date": "2026-02-16T14:09:00.000Z"}
 ]

@@ -289,7 +289,7 @@
         <img src="https://cdn-icons-png.flaticon.com/128/15386/15386882.png" class="baseball-logo hide-on-quiz" alt="Baseball Logo">
         <div class="main-title hide-on-quiz">Pitch Recognition Challenge</div>
         <div class="subtitle hide-on-quiz">Test your skills. Choose a pitcher. Climb the leaderboard!</div>
-        <div id="version-display" style="font-size: 0.7em; color: #666; margin-bottom: 10px;">v1.0.1 (09d54a8)</div>
+        <div id="version-display" style="font-size: 0.7em; color: #666; margin-bottom: 10px;">v1.0.2 (fix-modal)</div>
         
         <!-- Stored Name Display -->
         <div id="stored-name-display" class="hide-on-quiz">
@@ -490,8 +490,11 @@
         const rateLimitWarning = document.getElementById('rate-limit-warning');
         
         scoreDisplay.textContent = score;
-        errorDiv.textContent = '';
         rateLimitWarning.classList.remove('active');
+        
+        // Reset button state FIRST
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Score';
         
         // Check if name is locked for this device
         const lockedName = await getLockedNameForDevice();
@@ -508,6 +511,7 @@
             nameInput.disabled = false;
             nameInput.style.background = '#181818';
             nameInput.style.color = '#fff';
+            errorDiv.textContent = '';
             
             // Pre-fill with stored name if available
             const storedName = getStoredName();
@@ -520,8 +524,6 @@
         }
         
         modal.classList.add('active');
-        errorDiv.textContent = '';
-        rateLimitWarning.classList.remove('active');
         
         return new Promise((resolve) => {
             let submitted = false;
@@ -563,15 +565,15 @@
                     resolve(true);
                 } catch (err) {
                     console.error('Submit error:', err);
-                    errorDiv.textContent = err.message || 'Failed to submit score. Please try again.';
                     
                     if (err.message && err.message.includes('Rate limit')) {
                         rateLimitWarning.classList.add('active');
-                    }
-                    
-                    if (err.message && err.message.includes('same name')) {
+                        errorDiv.textContent = err.message;
+                    } else if (err.message && err.message.includes('same name')) {
                         // Name mismatch error - show info about locked name
                         errorDiv.innerHTML = `<span style="color: #ffbb00;">⚠️ ${err.message}</span>`;
+                    } else {
+                        errorDiv.textContent = err.message || 'Failed to submit score. Please try again.';
                     }
                     
                     // ALWAYS re-enable button on error
