@@ -1,0 +1,7 @@
+
+> pitch-recognition-quiz@1.0.0 start
+> node server.js
+
+Server running at http://localhost:3000
+Rate limit: 10 scores/hour per device
+Name lock: 24 hours

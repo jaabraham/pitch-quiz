@@ -8,6 +8,23 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(__dirname));
 app.use(express.json());
 
+// CORS Configuration for GitHub Pages
+// Update this to match your GitHub Pages URL exactly
+const ALLOWED_ORIGIN = 'https://jaabraham.github.io';  // GitHub Pages origin
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
 // Configuration
 const MAX_SCORES_PER_HOUR = 10;
 const NAME_LOCK_DURATION_HOURS = 24;

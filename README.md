@@ -2,7 +2,7 @@
 
 A baseball pitch recognition game where players identify fastballs vs offspeed pitches from video clips. Built with vanilla JavaScript, Express, and anonymous fingerprint-based authentication.
 
-**Live Demo**: https://pitch-quiz.onrender.com
+**Live Demo**: https://jaabraham.github.io/pitch-quiz/
 
 ---
 
@@ -10,11 +10,12 @@ A baseball pitch recognition game where players identify fastballs vs offspeed p
 
 1. [How the App Works](#how-the-app-works)
 2. [Features](#features)
-3. [Local Development](#local-development)
-4. [Deployment Guide](#deployment-guide)
-   - [GitHub Setup](#github-setup)
-   - [Render.com Deployment](#rendercom-deployment)
-5. [Architecture](#architecture)
+3. [Architecture Overview](#architecture-overview)
+4. [Deployment Setup](#deployment-setup)
+   - [Step 1: Deploy Frontend to GitHub Pages](#step-1-deploy-frontend-to-github-pages)
+   - [Step 2: Deploy Backend to Render](#step-2-deploy-backend-to-render)
+   - [Step 3: Connect Frontend to Backend](#step-3-connect-frontend-to-backend)
+5. [Local Development](#local-development)
 6. [Security Features](#security-features)
 7. [Changelog](#changelog)
 8. [Troubleshooting](#troubleshooting)
@@ -25,13 +26,15 @@ A baseball pitch recognition game where players identify fastballs vs offspeed p
 
 ### Game Flow
 
-1. **Front Page**: User sees leaderboard and video selection thumbnails
+1. **Front Page**: User sees compact header (logo + title), leaderboard, and video selection thumbnails
 2. **Video Selection**: Click a pitcher thumbnail to start a quiz
-3. **Quiz Game**: 
-   - YouTube video plays showing pitching drills
-   - During specific time windows, "Fastball" and "Offspeed" buttons appear
-   - Player clicks their guess before the window expires
-   - Immediate feedback: "CORRECT" or "WRONG" overlay
+3. **Quiz Game**:
+   - 5 random clips are selected from the video (different each time!)
+   - YouTube video loads at the exact clip start time (muted)
+   - **Clip 1**: Click "Start Clip" button to begin
+   - **Clips 2-5**: Auto-play immediately after answering previous clip
+   - "Fastball" and "Offspeed" buttons appear during the clip
+   - Player clicks their guess - immediate feedback shows "CORRECT" or "WRONG" overlay
 4. **Scoring**:
    - Correct answer: up to 1000 points based on reaction time
    - Faster response = more points
@@ -44,29 +47,235 @@ Each video has predefined "answer windows" in `videos.json`:
 
 ```json
 {
-  "startTime": "0:10",
-  "correctAnswer": 1,
-  "clipIndex": 0
+  "videoId": "8ZYPZIwj2u0",
+  "description": "Pitch Recognition Drill 1",
+  "answerWindows": [
+    { "startTime": "0:10", "correctAnswer": 2, "clipIndex": 0 },
+    { "startTime": "0:21", "correctAnswer": 1, "clipIndex": 1 }
+  ]
 }
 ```
 
+- `videoId`: YouTube video ID
 - `startTime`: When the guess window opens (MM:SS format)
 - `correctAnswer`: 1 = Fastball, 2 = Offspeed
-- `clipIndex`: Sequential clip number
+- `clipIndex`: Sequential clip number in the original video
+
+### Random Clip Selection
+
+Each quiz session randomly selects **5 clips** from all available clips in the video:
+- Prevents memorization of answers
+- Creates varied gameplay experience
+- Clips are sorted chronologically after random selection
+- The player destroys and recreates the YouTube player for each clip to ensure accurate timing
 
 ---
 
 ## Features
 
-- 🎥 **YouTube Integration**: Embedded pitching drill videos
+- 🎥 **YouTube Integration**: Embedded pitching drill videos (muted)
+- 🎲 **Random Clip Selection**: 5 random clips per quiz (different each time)
 - 🏆 **Anonymous Leaderboard**: No login/password required
-- 🔒 **Anti-Gaming Protection**: 
-  - Rate limiting (10 scores/hour per device)
-  - Name locking (1 name per device per hour)
-  - Name reservation (24-hour lock to device)
+- 🔇 **Muted Audio**: All videos play silently
 - 📱 **Mobile Responsive**: Works on phones, tablets, desktop
 - 🎮 **Real-time Feedback**: Visual overlay for correct/wrong answers
 - 📊 **Score Stats**: Tracks correct %, total time, clip timing
+- 🔒 **Anti-Gaming Protection**:
+  - Rate limiting (10 scores/hour per device)
+  - Name locking (1 name per device per hour)
+  - Name reservation (24-hour lock to device)
+
+---
+
+## Architecture Overview
+
+### Two-Deployment Architecture
+
+This app uses a **hybrid deployment approach** for optimal performance and cost:
+
+| Component | Platform | Purpose | Why |
+|-----------|----------|---------|-----|
+| **Frontend** | GitHub Pages | Static files (HTML, CSS, JS) | Free, fast, no cold start |
+| **Backend API** | Render.com | Score submission, leaderboard | Dynamic data, file storage |
+
+### Data Flow
+
+```
+User Browser
+     │
+     ├──► GitHub Pages (Frontend)
+     │    ├── index.html
+     │    ├── script.js
+     │    └── style.css
+     │
+     ├──► YouTube (Videos - Muted)
+     │
+     └──► Render.com (Backend API)
+          ├── POST /api/scores (submit score)
+          ├── GET /topscores.json (leaderboard)
+          └── GET /api/check-name (name validation)
+```
+
+### Fingerprint Generation
+
+Each browser gets a unique ID stored in `localStorage`:
+
+```javascript
+const components = [
+    navigator.userAgent,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    navigator.language,
+    new Date().getTimezoneOffset(),
+    Math.random().toString(36).substring(2, 15)
+];
+const fingerprint = btoa(components.join('|')).substring(0, 32);
+```
+
+This allows tracking without cookies or logins.
+
+---
+
+## Deployment Setup
+
+### Prerequisites
+
+1. GitHub account (free)
+2. Render.com account (free tier)
+3. This repository pushed to GitHub
+
+---
+
+### Step 1: Deploy Frontend to GitHub Pages
+
+1. Push your code to GitHub:
+   ```bash
+   git push origin master
+   ```
+
+2. Go to your repository on GitHub: `https://github.com/jaabraham/pitch-quiz`
+
+3. Click **Settings** → **Pages** (in left sidebar)
+
+4. Under "Source", select:
+   - **Branch**: `master`
+   - **Folder**: `/ (root)`
+
+5. Click **Save**
+
+6. Wait 1-2 minutes for deployment
+
+7. Your site will be at: `https://jaabraham.github.io/pitch-quiz/`
+
+**Note**: The leaderboard won't work yet - you need to deploy the backend (Step 2).
+
+---
+
+### Step 2: Deploy Backend to Render
+
+1. Go to https://render.com and sign up (use GitHub login for ease)
+
+2. From Dashboard, click **"New +"** → **"Web Service"**
+
+3. Click **"Connect GitHub"** and authorize Render
+
+4. Find and select your **`pitch-quiz`** repository
+
+5. Configure the service:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Name** | `pitch-quiz-api` |
+   | **Runtime** | `Node` |
+   | **Region** | Choose closest to your users |
+   | **Branch** | `master` |
+   | **Build Command** | `npm install` |
+   | **Start Command** | `npm start` |
+   | **Plan** | **Free** |
+
+6. Click **"Create Web Service"**
+
+7. Wait for build to complete (2-3 minutes)
+
+8. Your Render URL is: `https://pitch-quiz.onrender.com`
+
+9. **Copy this URL** - you'll need it for Step 3
+
+---
+
+### Step 3: Connect Frontend to Backend
+
+You need to update the frontend code to point to your Render backend URL.
+
+#### Option A: Update API URL in index.html
+
+1. Open `index.html` in your code editor
+
+2. Find the JavaScript section with the API calls (around line 460)
+
+3. Update the API base URL to your Render URL:
+
+   ```javascript
+   // Change from:
+   fetch('/topscores.json', ...)
+   
+   // To:
+   fetch('https://pitch-quiz-api.onrender.com/topscores.json', ...)
+   ```
+
+4. Do this for all API endpoints:
+   - `/topscores.json` → `https://pitch-quiz.onrender.com/topscores.json`
+   - `/api/scores` → `https://pitch-quiz.onrender.com/api/scores`
+   - `/api/check-name` → `https://pitch-quiz.onrender.com/api/check-name`
+
+#### Option B: Use a Config Variable (Recommended)
+
+Add this near the top of the JavaScript in `index.html`:
+
+```javascript
+// API Configuration
+const API_BASE = 'https://pitch-quiz.onrender.com';  // Your Render backend URL
+
+// Then use API_BASE in all fetch calls:
+fetch(`${API_BASE}/topscores.json`)
+fetch(`${API_BASE}/api/scores`, {method: 'POST', ...})
+fetch(`${API_BASE}/api/check-name?name=${name}`)
+```
+
+#### Update CORS in server.js
+
+Your Render backend needs to allow requests from GitHub Pages. Update `server.js`:
+
+```javascript
+// Add CORS middleware before your routes
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://jaabraham.github.io');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+```
+
+#### Redeploy After Changes
+
+1. Commit and push your changes:
+   ```bash
+   git add .
+   git commit -m "Update API URLs for GitHub Pages deployment"
+   git push origin master
+   ```
+
+2. Render will automatically redeploy (takes ~2 minutes)
+
+3. GitHub Pages will update automatically (takes ~1 minute)
+
+4. Test your site!
 
 ---
 
@@ -87,7 +296,7 @@ cd pitch-quiz
 # Install dependencies
 npm install
 
-# Start the server
+# Start the server (backend will run on localhost:3000)
 npm start
 
 # Open browser to http://localhost:3000
@@ -101,168 +310,13 @@ pitch-quiz/
 ├── script.js               # Quiz game logic, YouTube API
 ├── style.css               # Styling
 ├── server.js               # Express server, API endpoints
-├── package.json            # Dependencies and scripts
 ├── videos.json             # Video configurations with answer windows
 ├── topscores.json          # High scores database
-├── topscores_backup.json   # Original scores backup
+├── package.json            # Dependencies and scripts
 ├── render.yaml             # Render deployment config
 ├── .gitignore              # Git ignore rules
 └── README.md               # This file
 ```
-
----
-
-## Deployment Guide
-
-### GitHub Setup
-
-#### Step 1: Create GitHub Repository
-
-1. Go to https://github.com/new
-2. **Repository name**: `pitch-quiz`
-3. **Description**: (optional) "Baseball pitch recognition quiz"
-4. Choose **Public** or **Private**
-5. ⚠️ **UNCHECK** all initialization options:
-   - [ ] Add a README file
-   - [ ] Add .gitignore
-   - [ ] Choose a license
-6. Click **"Create repository"**
-
-#### Step 2: Create Personal Access Token
-
-1. Go to https://github.com/settings/tokens
-2. Click **"Generate new token (classic)"**
-3. **Note**: "Pitch Quiz Deploy"
-4. **Expiration**: 30 days (or custom)
-5. **Scopes**: Check only **`repo`** (full control of private repositories)
-6. Click **"Generate token"**
-7. **COPY THE TOKEN IMMEDIATELY** (you won't see it again!)
-
-#### Step 3: Push Local Code to GitHub
-
-```bash
-# Navigate to project directory
-cd /path/to/pitch-quiz
-
-# Initialize git (if not already done)
-git init
-
-# Add all files
-git add .
-
-# Commit
-git commit -m "Initial commit"
-
-# Add remote (replace YOUR_USERNAME with your GitHub username)
-git remote add origin https://github.com/YOUR_USERNAME/pitch-quiz.git
-
-# Push to GitHub
-git push -u origin master
-
-# When prompted:
-# Username: YOUR_USERNAME
-# Password: YOUR_PERSONAL_ACCESS_TOKEN (paste it, won't show characters)
-```
-
-**Verify**: Visit https://github.com/YOUR_USERNAME/pitch-quiz to confirm files uploaded.
-
----
-
-### Render.com Deployment
-
-#### Step 1: Create Render Account
-
-1. Go to https://render.com
-2. Sign up with GitHub (recommended) or email
-3. Verify your account
-
-#### Step 2: Create Web Service
-
-1. From Render Dashboard, click **"New +"** (top right)
-2. Select **"Web Service"**
-3. Click **"Connect GitHub"** and authorize Render
-4. Find and select your **`pitch-quiz`** repository
-
-#### Step 3: Configure Service
-
-| Setting | Value |
-|---------|-------|
-| **Name** | `pitch-quiz` (or any name you prefer) |
-| **Runtime** | `Node` |
-| **Region** | Choose closest to your users |
-| **Branch** | `master` (or `main` if you renamed it) |
-| **Root Directory** | (leave empty) |
-| **Build Command** | `npm install` |
-| **Start Command** | `npm start` |
-| **Plan** | **Free** |
-
-#### Step 4: Deploy
-
-1. Click **"Create Web Service"**
-2. Wait for build to complete (2-3 minutes)
-3. Render will provide a URL like: `https://pitch-quiz.onrender.com`
-
-#### Step 5: Verify Deployment
-
-1. Visit your assigned URL
-2. Test the quiz:
-   - Click a video thumbnail
-   - Click "Start Quiz"
-   - Click "🧪 Test High Score (9999)" button
-   - Enter a name and submit
-3. Check that your name appears on the leaderboard
-
----
-
-## Architecture
-
-### Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Frontend | Vanilla HTML, CSS, JavaScript |
-| Backend | Node.js, Express |
-| Video | YouTube IFrame API |
-| Auth | Anonymous device fingerprinting |
-| Storage | JSON files (topscores.json) |
-| Hosting | Render (free tier) |
-
-### Data Flow
-
-```
-User Browser                    Render Server
-     |                                |
-     |-- 1. Load page -------------->|
-     |<-- 2. Return index.html --------|
-     |                                |
-     |-- 3. Fetch videos.json ------->|
-     |<-- 4. Return video configs ----|
-     |                                |
-     |-- 5. Fetch topscores.json ---->|
-     |<-- 6. Return leaderboard ------|
-     |                                |
-     |-- 7. POST /api/scores -------->|
-     |    {name, score, fingerprint}  |
-     |<-- 8. Return updated scores ---|
-```
-
-### Fingerprint Generation
-
-Each browser gets a unique ID stored in `localStorage`:
-
-```javascript
-const components = [
-    navigator.userAgent,
-    screen.width + 'x' + screen.height,
-    screen.colorDepth,
-    navigator.language,
-    new Date().getTimezoneOffset(),
-    Math.random().toString(36).substring(2, 15)
-];
-const fingerprint = btoa(components.join('|')).substring(0, 32);
-```
-
-This allows tracking without cookies or logins.
 
 ---
 
@@ -293,7 +347,23 @@ This allows tracking without cookies or logins.
 
 ## Changelog
 
-### Version 1.0.0 (Current)
+### Version 1.1.7 (Current) - 2026-02-17
+
+**Major Changes**:
+- 🎲 **Random Clip Selection**: Each quiz now randomly selects 5 clips from all available clips, preventing memorization
+- 🔇 **Muted Audio**: All videos now play silently
+- 🎯 **Auto-play Clips 2-5**: Only the first clip requires clicking "Start Clip"; subsequent clips auto-play
+- 🎨 **Compact Header Layout**: Logo and title now side-by-side with less blank space
+- 🛠️ **Fixed Timing Issues**: Player now destroys and recreates for each clip to ensure accurate start times
+- 📝 **Updated Documentation**: Complete rewrite for GitHub Pages + Render hybrid deployment
+
+**Technical Improvements**:
+- YouTube player now explicitly seeks to correct time and verifies position
+- Better error handling for null DOM elements
+- Removed old `pitch/` directory with unused local video files
+- Added extensive console logging for debugging
+
+### Version 1.0.0 (Original)
 
 **Date**: 2026-02-16
 
@@ -304,34 +374,6 @@ This allows tracking without cookies or logins.
 - Name locking: 1 name per device per hour
 - YouTube video integration
 - Mobile responsive design
-- Test high score button (for development)
-
-**Security**:
-- Device fingerprinting for anonymous tracking
-- IP hash for additional rate limiting
-- Input sanitization on name field
-
-**Deployment**:
-- Render.com compatible
-- Environment-based port configuration
-- Blueprint file (`render.yaml`)
-
-### Known Issues / TODO
-
-- [ ] YouTube API sometimes fails to load on slow connections
-- [ ] Free tier has 30-60s cold start time on Render
-- [ ] Scores reset if Render instance restarts (disk is ephemeral on free tier)
-- [ ] No admin panel for managing videos/scores
-
-### Future Enhancements (Ideas)
-
-- [ ] Add more pitch types (slider, changeup, etc.)
-- [ ] User statistics page (personal best, average reaction time)
-- [ ] Difficulty levels (faster windows, more pitch types)
-- [ ] Admin panel for adding new videos
-- [ ] Export scores to CSV
-- [ ] Dark/light theme toggle
-- [ ] Sound effects for correct/wrong answers
 
 ---
 
@@ -345,31 +387,50 @@ This allows tracking without cookies or logins.
 | Port 3000 already in use | Change `PORT` in server.js or kill other process |
 | Changes not reflecting | Clear browser cache, hard refresh (Ctrl+Shift+R) |
 
-### Render Deployment Issues
+### GitHub Pages Issues
 
 | Issue | Solution |
 |-------|----------|
-| Build fails | Check that `package.json` has correct `"start"` script |
+| Site not appearing | Check that GitHub Pages is enabled in Settings → Pages |
+| 404 errors | Ensure `index.html` is at root and branch is correct |
+| Changes not showing | GitHub Pages can take 1-5 minutes to update |
+
+### Render Backend Issues
+
+| Issue | Solution |
+|-------|----------|
 | "Application Error" | Check Render logs (Dashboard → Logs) |
 | Site slow to load | Normal for free tier after idle; first request wakes server |
 | Scores not persisting | Expected on free tier (disk is ephemeral) |
-| High scores not updating | Check browser console for API errors |
+| CORS errors | Update `Access-Control-Allow-Origin` in server.js to match your GitHub Pages URL exactly |
+| Build fails | Check that `package.json` has correct `"start"` script |
 
-### Git Push Issues
+### Cross-Origin (CORS) Issues
 
-| Issue | Solution |
-|-------|----------|
-| "Repository not found" | Create the repo on GitHub first |
-| "src refspec main does not match" | Use `git push -u origin master` (not main) |
-| Authentication fails | Use Personal Access Token, not password |
+If you see errors like:
+```
+Access to fetch at 'https://pitch-quiz-api.onrender.com/...' 
+from origin 'https://jaabraham.github.io' has been blocked by CORS policy
+```
+
+**Solution**: Update `server.js` with your exact GitHub Pages URL:
+
+```javascript
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://jaabraham.github.io');
+    // NOT 'https://jaabraham.github.io/' (trailing slash matters!)
+    // NOT '*' (won't work with credentials)
+});
+```
 
 ### Game Issues
 
 | Issue | Solution |
 |-------|----------|
 | Video not loading | Check YouTube URL in `videos.json` |
+| Video starts at wrong time | This is a known YouTube API timing issue; the player recreates for each clip to minimize this |
 | Buttons don't appear | Check browser console for JavaScript errors |
-| Score not submitting | Check if rate limit reached (10/hour) |
+| Score not submitting | Check if rate limit reached (10/hour), check console for API errors |
 | Name rejected | Must be 2-20 chars, alphanumeric + spaces only |
 
 ---
@@ -388,4 +449,4 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-17 (v1.1.7)

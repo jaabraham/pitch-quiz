@@ -15,12 +15,37 @@ async function loadVideoData() {
             throw new Error(`Video with ID ${videoId} not found in videos.json`);
         }
 
-        answerWindows = videoData.answerWindows;
+        // Randomly select 5 clips from all available answer windows
+        answerWindows = selectRandomClips(videoData.answerWindows, 5);
         updateStaticUI(); // Update UI with loaded data
     } catch (error) {
         console.error('Error loading video data:', error);
         feedbackMessage.textContent = 'Error loading video data. Please try again.';
     }
+}
+
+// --- Helper: Randomly select N clips from answer windows ---
+function selectRandomClips(allWindows, count) {
+    // If there are fewer clips than requested, use all of them
+    if (allWindows.length <= count) {
+        return allWindows.map((w, i) => ({ ...w, clipIndex: i }));
+    }
+    
+    // Shuffle the array using Fisher-Yates algorithm
+    const shuffled = [...allWindows];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Take the first 'count' items
+    const selected = shuffled.slice(0, count);
+    
+    // Sort by start time so they play in chronological order
+    selected.sort((a, b) => parseTimeString(a.startTime) - parseTimeString(b.startTime));
+    
+    // Re-index clipIndex to be 0-4 for the selected clips
+    return selected.map((w, i) => ({ ...w, clipIndex: i }));
 }
 
 // --- Parse URL Parameters ---
@@ -43,7 +68,7 @@ let windowStartTimeStamp = null; // Timestamp when the current answer window sta
 
 // --- DOM Elements ---
 // Use window properties for all shared DOM elements to avoid redeclaration
-window.scoreDisplay = window.scoreDisplay || document.getElementById('score');
+window.scoreDisplay = window.scoreDisplay || document.getElementById('scoreboard-score');
 window.currentClipDisplay = window.currentClipDisplay || document.getElementById('current-clip');
 window.totalClipsDisplay = window.totalClipsDisplay || document.getElementById('total-clips');
 window.currentTimeDisplay = window.currentTimeDisplay || document.getElementById('current-time');
@@ -81,63 +106,117 @@ function parseTimeString(timeString) {
 
 // --- YouTube API Loading  ---
 function onYouTubeIframeAPIReady() {
-    createOrLoadPlayer(videoId);
+    createOrLoadPlayer(videoId, getFirstClipStartTime());
 }
 
-function createOrLoadPlayer(newVideoId) {
-    if (window.player && typeof window.player.loadVideoById === 'function') {
-        // If player exists, just load the new video and pause immediately
-        window.player.loadVideoById(newVideoId);
-        setTimeout(() => {
-            if (window.player && typeof window.player.pauseVideo === 'function') {
-                window.player.pauseVideo();
-            }
-        }, 500); // Pause after load
-    } else {
-        // Create a new player (do not autoplay)
-        window.player = new YT.Player('player', {
-            height: '360',
-            width: '640',
-            videoId: newVideoId,
-            playerVars: {
-                'playsinline': 1,
-                'controls': 0,
-                'rel': 0,
-                'disablekb': 1,
-                'autoplay': 0 // Ensure autoplay is off
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
+function createOrLoadPlayer(newVideoId, startTime = 0) {
+    console.log(`[PLAYER] createOrLoadPlayer called - videoId: ${newVideoId}, startTime: ${startTime}s`);
+    
+    // Store the desired start time globally so onPlayerReady can use it
+    window.desiredStartTime = startTime;
+    
+    // Always destroy and recreate the player to ensure clean state and correct start time
+    if (window.player && typeof window.player.destroy === 'function') {
+        console.log(`[PLAYER] Destroying existing player`);
+        window.player.destroy();
+        window.player = null;
     }
+    
+    // Clear the player container
+    const playerContainer = document.getElementById('player');
+    if (playerContainer) {
+        playerContainer.innerHTML = '';
+    }
+    
+    // Create a new player with the correct start time
+    console.log(`[PLAYER] Creating new player with start=${startTime}s in playerVars`);
+    window.player = new YT.Player('player', {
+        height: '360',
+        width: '640',
+        videoId: newVideoId,
+        playerVars: {
+            'playsinline': 1,
+            'controls': 0,
+            'rel': 0,
+            'disablekb': 1,
+            'autoplay': 0, // Ensure autoplay is off
+            'start': Math.floor(startTime), // Start at specified time
+            'mute': 1 // Mute the audio
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
 }
 
 // The API will call this function when the video player is ready.
 function onPlayerReady(event) {
-    console.log("Player Ready");
+    console.log("[PLAYER] onPlayerReady called");
+    console.log(`[PLAYER] currentWindowIndex: ${currentWindowIndex}, answerWindows.length: ${answerWindows.length}`);
+    
+    // Explicitly seek to the desired start time to ensure correct position
+    const desiredTime = window.desiredStartTime || 0;
+    if (event && event.target && typeof event.target.seekTo === 'function' && desiredTime > 0) {
+        console.log(`[PLAYER] Explicitly seeking to ${desiredTime}s`);
+        event.target.seekTo(desiredTime, true);
+    }
+    
+    // Verify the actual current time
+    setTimeout(() => {
+        if (event && event.target && typeof event.target.getCurrentTime === 'function') {
+            const actualTime = event.target.getCurrentTime();
+            console.log(`[PLAYER] Actual video position: ${actualTime.toFixed(2)}s (desired: ${desiredTime}s)`);
+            if (Math.abs(actualTime - desiredTime) > 2) {
+                console.warn(`[PLAYER] WARNING: Video position mismatch! Seeking again to ${desiredTime}s`);
+                event.target.seekTo(desiredTime, true);
+            }
+        }
+    }, 500);
+    
+    if (answerWindows.length > 0) {
+        const firstWindow = answerWindows[0];
+        console.log(`[PLAYER] First clip expected at: ${firstWindow.startTime}, clipIndex: ${firstWindow.clipIndex}`);
+    }
     feedbackMessage.textContent = "Player Ready. Waiting to start quiz...";
     updateStaticUI(); // Set total clips display
     // Disable answer buttons until the first answer window
     disableButtons();
     hideButtonsContainer();
-    // Always pause video on ready
-    if (event && event.target && typeof event.target.pauseVideo === 'function') {
-        event.target.pauseVideo();
+    // Always pause and mute video on ready
+    if (event && event.target) {
+        if (typeof event.target.pauseVideo === 'function') {
+            event.target.pauseVideo();
+            console.log("[PLAYER] Video paused on ready");
+        }
+        if (typeof event.target.mute === 'function') {
+            event.target.mute();
+            console.log("[PLAYER] Video muted on ready");
+        }
     }
     // Do NOT start timer or play video here
     // Wait for user to click "Start Quiz" overlay
 }
 
+// --- Helper: Get start time of first clip ---
+function getFirstClipStartTime() {
+    if (answerWindows && answerWindows.length > 0) {
+        return parseTimeString(answerWindows[0].startTime);
+    }
+    return 0;
+}
+
 // --- Start Quiz logic (called by overlay button) ---
 window.startQuiz = function() {
-    console.log("Start Quiz button clicked");
-    // Always start from the beginning
-    if (window.player && typeof window.player.seekTo === 'function') {
-        window.player.seekTo(0, true);
+    const firstWindow = answerWindows[0];
+    const startTime = getFirstClipStartTime();
+    console.log(`[CLIP] STARTING QUIZ: Clip 1 at ${firstWindow.startTime} (${startTime}s) - Answer: ${getAnswerString(firstWindow.correctAnswer)}`);
+    
+    // Hide the overlay
+    if (window.startQuizOverlay) {
+        window.startQuizOverlay.style.display = 'none';
     }
-    // Start the timer BEFORE playing the video to ensure timer is running even if playVideo is delayed
+    // Start the timer and play the video
     startPlaybackTimer();
     if (window.player && typeof window.player.playVideo === 'function') {
         window.player.playVideo();
@@ -201,6 +280,16 @@ function checkTimeWindow() {
     } catch {
         currentTime = 0;
     }
+    
+    // Log current state for debugging
+    if (answerWindows.length > 0 && currentWindowIndex < answerWindows.length) {
+        const expectedWindow = answerWindows[currentWindowIndex];
+        const expectedStart = parseTimeString(expectedWindow.startTime);
+        // Only log occasionally to avoid spam
+        if (Math.floor(currentTime * 2) % 5 === 0) { // Log roughly every 2.5 seconds
+            console.log(`[TIMER] currentTime: ${currentTime.toFixed(2)}s, expecting clip ${currentWindowIndex + 1} at ${expectedStart}s`);
+        }
+    }
 
     if (currentTimeDisplay) {
         currentTimeDisplay.textContent = currentTime.toFixed(1) + 's';
@@ -232,6 +321,7 @@ function checkTimeWindow() {
                     canAnswer = true;
                     windowStartTimeStamp = currentTime;
                     feedbackMessage.textContent = `Clip ${currentWindow.clipIndex + 1}: Guess Now!`;
+                    console.log(`[CLIP] ACTIVE: Clip ${currentWindowIndex + 1} - Current time: ${currentTime.toFixed(2)}s, Window: ${currentStartTime}s-${nextStartTime}s`);
                 }
                 enableButtons();
                 showButtonsContainer();
@@ -246,6 +336,7 @@ function checkTimeWindow() {
         else if (currentTime >= nextStartTime) {
             // If not answered, count as missed and advance
             if (lastAnsweredClipIndex !== currentWindow.clipIndex && !isQuizComplete) {
+                console.log(`[CLIP] MISSED: Clip ${currentWindowIndex + 1} - Current time: ${currentTime.toFixed(2)}s, Window ended at: ${nextStartTime}s`);
                 canAnswer = false;
                 disableButtons();
                 hideButtonsContainer();
@@ -256,8 +347,21 @@ function checkTimeWindow() {
                 wrongAnswersDisplay.textContent = questionsAnswered - correctAnswers;
                 totalTimeDisplay.textContent = ytPlayer.getCurrentTime().toFixed(1);
                 updatePercentageCorrect();
+                
+                // Stop timer and pause video
+                stopPlaybackTimer();
+                if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                    ytPlayer.pauseVideo();
+                }
+                
+                // Load next clip after delay
+                setTimeout(() => {
+                    moveToNextWindow();
+                }, 1500);
+                return;
             }
             // Always advance window if past, even if canAnswer is false
+            console.log(`[CLIP] ADVANCING: Moving past Clip ${currentWindowIndex + 1} (already answered)`);
             currentWindowIndex++;
             if (currentWindowIndex >= answerWindows.length) {
                 endQuiz();
@@ -278,7 +382,12 @@ function checkTimeWindow() {
                 !feedbackMessage.textContent.includes("Incorrect") &&
                 !feedbackMessage.textContent.includes("Missed")
             ) {
-                feedbackMessage.textContent = `Waiting for Clip ${currentWindow.clipIndex + 1}...`;
+                const msg = `Waiting for Clip ${currentWindowIndex + 1} at ${currentWindow.startTime}... (current: ${currentTime.toFixed(1)}s)`;
+                feedbackMessage.textContent = msg;
+                // Log this state change
+                if (Math.floor(currentTime) % 2 === 0) { // Log every ~2 seconds
+                    console.log(`[TIMER] ${msg}, clipIndex: ${currentWindow.clipIndex}`);
+                }
             }
             break; // Not in any window yet, stop loop
         }
@@ -319,38 +428,111 @@ function handleAnswer(selectedAnswerString) {
         feedbackMessage.textContent = `Clip ${currentWindow.clipIndex + 1}: Correct! (+${pointsEarned} pts)`;
         overlayClass = 'correct';
         overlayText = 'CORRECT!';
+        console.log(`[CLIP] CORRECT: Clip ${currentWindowIndex + 1} - Guessed: ${selectedAnswerString}, Time: ${timeTaken.toFixed(2)}s, Points: ${pointsEarned}`);
     } else {
         feedbackMessage.textContent = `Clip ${currentWindow.clipIndex + 1}: Incorrect! (Was ${correctAnswerString})`;
+        console.log(`[CLIP] WRONG: Clip ${currentWindowIndex + 1} - Guessed: ${selectedAnswerString}, Correct: ${correctAnswerString}, Time: ${timeTaken.toFixed(2)}s`);
     }
 
     // Update stats
     correctAnswersDisplay.textContent = correctAnswers;
     wrongAnswersDisplay.textContent = questionsAnswered - correctAnswers;
-    totalTimeDisplay.textContent = ytPlayer.getCurrentTime().toFixed(1); // Update total time
+    totalTimeDisplay.textContent = clickTime.toFixed(1); // Use click time, not current time
 
     showFeedbackOverlay(overlayText, overlayClass);
     scoreboardScoreDisplay.textContent = score;
     updatePercentageCorrect(); // Update percentage correct
-    moveToNextWindow();
+    
+    // Stop the timer and pause video
+    stopPlaybackTimer();
+    if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+        ytPlayer.pauseVideo();
+    }
+    
+    // Wait a moment then load next clip
+    setTimeout(() => {
+        moveToNextWindow();
+    }, 1500);
 }
 
 // --- MODIFIED: moveToNextWindow Function ---
 function moveToNextWindow() {
     currentWindowIndex++;
-    // Safely update currentClipDisplay and currentQuestionDisplay if they exist
+    
+    if (currentWindowIndex >= answerWindows.length) {
+        console.log(`[CLIP] Quiz complete - no more clips`);
+        endQuiz();
+        return;
+    }
+    
+    // Load the next clip at its exact start time
+    const nextWindow = answerWindows[currentWindowIndex];
+    const startTime = parseTimeString(nextWindow.startTime);
+    const correctAnswer = getAnswerString(nextWindow.correctAnswer);
+    
+    console.log(`[CLIP] Loading Clip ${currentWindowIndex + 1}/${answerWindows.length}`);
+    console.log(`[CLIP]   Start time: ${nextWindow.startTime} (${startTime}s)`);
+    console.log(`[CLIP]   Correct answer: ${correctAnswer}`);
+    console.log(`[CLIP]   Original clipIndex from videos.json: ${nextWindow.clipIndex}`);
+    
+    // Update UI
     if (currentClipDisplay) {
-        currentClipDisplay.textContent = Math.min(currentWindowIndex + 1, answerWindows.length);
+        currentClipDisplay.textContent = currentWindowIndex + 1;
     }
     if (currentQuestionDisplay) {
-        currentQuestionDisplay.textContent = Math.min(currentWindowIndex + 1, answerWindows.length);
+        currentQuestionDisplay.textContent = currentWindowIndex + 1;
     }
     if (clipTimeMsDisplay) {
-        clipTimeMsDisplay.textContent = "0.0"; // Reset time to 0.0 after each clip
+        clipTimeMsDisplay.textContent = "0.0";
     }
-
-    if (currentWindowIndex >= answerWindows.length) {
-        endQuiz();
+    
+    feedbackMessage.textContent = `Clip ${currentWindowIndex + 1}: Loading...`;
+    
+    // Store the desired start time globally
+    window.desiredStartTime = startTime;
+    
+    // Destroy and recreate player for each clip to ensure correct start time
+    if (window.player && typeof window.player.destroy === 'function') {
+        console.log(`[CLIP] Destroying player for clip ${currentWindowIndex + 1}`);
+        window.player.destroy();
+        window.player = null;
     }
+    
+    // Clear the player container
+    const playerContainer = document.getElementById('player');
+    if (playerContainer) {
+        playerContainer.innerHTML = '';
+    }
+    
+    // Create new player at the exact start time
+    console.log(`[CLIP] Creating new player for clip ${currentWindowIndex + 1} at ${startTime}s`);
+    window.player = new YT.Player('player', {
+        height: '360',
+        width: '640',
+        videoId: videoId,
+        playerVars: {
+            'playsinline': 1,
+            'controls': 0,
+            'rel': 0,
+            'disablekb': 1,
+            'autoplay': 0,
+            'start': Math.floor(startTime),
+            'mute': 1
+        },
+        events: {
+            'onReady': function(event) {
+                console.log(`[CLIP] Player ready for clip ${currentWindowIndex + 1}, auto-playing`);
+                // Ensure muted
+                if (typeof event.target.mute === 'function') {
+                    event.target.mute();
+                }
+                event.target.playVideo();
+                startPlaybackTimer();
+                feedbackMessage.textContent = `Clip ${currentWindowIndex + 1}: Guess Now!`;
+            },
+            'onStateChange': onPlayerStateChange
+        }
+    });
 }
 
 // --- MODIFIED: updatePercentageCorrect Function ---
@@ -381,7 +563,7 @@ function endQuiz() {
 
 // --- MODIFIED: resetQuiz Function ---
 function resetQuiz() {
-    console.log("Resetting Quiz");
+    console.log("[CLIP] ========== RESETTING QUIZ ==========");
     score = 0;
     correctAnswers = 0; // Reset correct answers
     questionsAnswered = 0; // Reset questions answered
@@ -392,23 +574,50 @@ function resetQuiz() {
     windowStartTimeStamp = null; // Reset timestamp
 
     updateStaticUI();
-    scoreboardScoreDisplay.textContent = score; // Reset scoreboard score
-    percentageCorrectDisplay.textContent = "100%"; // Reset percentage correct to 100%
-    clipTimeMsDisplay.textContent = "0"; // Reset clip time in ms
-    correctAnswersDisplay.textContent = "0"; // Reset correct answers
-    wrongAnswersDisplay.textContent = "0"; // Reset wrong answers
-    totalTimeDisplay.textContent = "0.0"; // Reset total time
-
-    scoreDisplay.textContent = score;
-    feedbackMessage.textContent = "Starting... Waiting for Clip 1";
-    quizCompleteSection.classList.add('hidden');
+    
+    // Safely update UI elements (check for null)
+    if (scoreboardScoreDisplay) scoreboardScoreDisplay.textContent = score;
+    if (percentageCorrectDisplay) percentageCorrectDisplay.textContent = "100%";
+    if (clipTimeMsDisplay) clipTimeMsDisplay.textContent = "0";
+    if (correctAnswersDisplay) correctAnswersDisplay.textContent = "0";
+    if (wrongAnswersDisplay) wrongAnswersDisplay.textContent = "0";
+    if (totalTimeDisplay) totalTimeDisplay.textContent = "0.0";
+    if (scoreDisplay) scoreDisplay.textContent = score;
+    if (feedbackMessage) feedbackMessage.textContent = "Ready for Clip 1... Press Start Clip when ready!";
+    if (quizCompleteSection) quizCompleteSection.classList.add('hidden');
+    
     hideButtonsContainer(); // Start with buttons hidden
-    feedbackOverlay.classList.add('hidden'); // Ensure overlay is hidden
+    if (feedbackOverlay) feedbackOverlay.classList.add('hidden'); // Ensure overlay is hidden
 
-    if (player && typeof player.seekTo === 'function') {
-        player.seekTo(0, true); // Seek to beginning of the VIDEO
-        // Do NOT play video or start timer here
+    // Log the selected clips for this quiz
+    console.log(`[CLIP] Selected ${answerWindows.length} clips for this quiz:`);
+    answerWindows.forEach((win, idx) => {
+        console.log(`[CLIP]   ${idx + 1}. Start: ${win.startTime}, Answer: ${getAnswerString(win.correctAnswer)}`);
+    });
+
+    // Cue the first clip at its start time
+    const startTime = getFirstClipStartTime();
+    window.desiredStartTime = startTime; // Store globally for onPlayerReady
+    const firstWindow = answerWindows[0];
+    console.log(`[CLIP] Cueing Clip 1 at ${firstWindow.startTime} (${startTime}s) - Answer: ${getAnswerString(firstWindow.correctAnswer)}`);
+    
+    // Destroy and recreate player for first clip
+    if (player && typeof player.destroy === 'function') {
+        player.destroy();
+        player = null;
     }
+    const playerContainer = document.getElementById('player');
+    if (playerContainer) {
+        playerContainer.innerHTML = '';
+    }
+    
+    createOrLoadPlayer(videoId, startTime);
+    
+    // Show the start overlay
+    if (window.startQuizOverlay) {
+        window.startQuizOverlay.style.display = 'flex';
+    }
+    
     // Do NOT call startPlaybackTimer here
 }
 
@@ -516,6 +725,7 @@ function showFrontPageOnly() {
 
 // --- Support for dynamic video selection ---
 window.startQuizForVideo = async function(newVideoId) {
+    console.log(`[VIDEO] startQuizForVideo called with videoId: ${newVideoId}`);
     // Update videoId and URL
     videoId = newVideoId;
     if (window.history && window.history.replaceState) {
@@ -530,13 +740,17 @@ window.startQuizForVideo = async function(newVideoId) {
     if (thumbList) thumbList.classList.add('hidden');
     // Load new video data and reset quiz
     await loadVideoData();
+    console.log(`[VIDEO] Video data loaded, answerWindows count: ${answerWindows.length}`);
     resetQuiz();
     showQuizUIOnly();
-    // Load the new video in the player (or create if not exists)
+    // Load the new video in the player (or create if not exists) at the first clip's start time
+    const startTime = getFirstClipStartTime();
+    console.log(`[VIDEO] Loading player at startTime: ${startTime}s`);
     if (typeof YT !== 'undefined' && YT.Player) {
-        createOrLoadPlayer(videoId);
+        createOrLoadPlayer(videoId, startTime);
     } else {
         // If API not loaded yet, load it
+        console.log(`[VIDEO] YouTube API not ready, loading API...`);
         loadYouTubeAPI();
     }
 };

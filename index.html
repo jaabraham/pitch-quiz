@@ -18,24 +18,29 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 16px 0 0 0;
+            padding: 8px 0 0 0;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
         }
         .baseball-logo {
-            width: 60px;
-            margin-bottom: 10px;
+            width: 45px;
+            height: 45px;
         }
         .main-title {
             font-family: 'Bebas Neue', Impact, Arial, sans-serif;
-            font-size: 2.2em;
+            font-size: 1.8em;
             letter-spacing: 2px;
             color: #ffbb00;
             text-shadow: 2px 2px 8px #000, 0 0 10px #1e88e5;
-            margin-bottom: 8px;
         }
         .subtitle {
             color: #b0b0b0;
-            font-size: 1.1em;
-            margin-bottom: 18px;
+            font-size: 1em;
+            margin-bottom: 12px;
         }
         #user-info {
             margin: 8px 0 0 0;
@@ -299,8 +304,10 @@
 </head>
 <body>
     <div id="front-page">
-        <img src="https://cdn-icons-png.flaticon.com/128/15386/15386882.png" class="baseball-logo hide-on-quiz" alt="Baseball Logo">
-        <div class="main-title hide-on-quiz">Pitch Recognition Challenge</div>
+        <div class="header-row hide-on-quiz">
+            <img src="https://cdn-icons-png.flaticon.com/128/15386/15386882.png" class="baseball-logo" alt="Baseball Logo">
+            <div class="main-title">Pitch Recognition Challenge</div>
+        </div>
         <div class="subtitle hide-on-quiz">Test your skills. Choose a pitcher. Climb the leaderboard!</div>
         
         <!-- Stored Name Display -->
@@ -358,7 +365,7 @@
         <div id="player-container" style="position:relative;">
             <div id="player"></div>
             <div id="start-quiz-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:20;">
-                <button id="start-quiz-btn-overlay" style="padding:20px 40px;font-size:1.5em;background:#43a047;color:#fff;border:none;border-radius:12px;box-shadow:0 2px 8px #0008;cursor:pointer;">Start Quiz</button>
+                <button id="start-quiz-btn-overlay" style="padding:20px 40px;font-size:1.5em;background:#43a047;color:#fff;border:none;border-radius:12px;box-shadow:0 2px 8px #0008;cursor:pointer;">Start Clip</button>
             </div>
             <div id="feedback-overlay" class="hidden">
                 <span id="feedback-text-overlay"></span>
@@ -389,6 +396,11 @@
 
     <script src="script.js"></script>
     <script>
+    // --- API Configuration ---
+    // For local development, use empty string (relative URLs)
+    // For GitHub Pages, update this to your Render backend URL
+    const API_BASE = 'https://pitch-quiz.onrender.com';  // Render backend URL
+    
     // --- Fingerprint & Anonymous Auth System ---
     
     // Generate a persistent device fingerprint
@@ -443,7 +455,7 @@
     // Check if score qualifies for top 10
     async function isTopScore(score) {
         try {
-            const res = await fetch('topscores.json');
+            const res = await fetch(`${API_BASE}/topscores.json`);
             const scores = await res.json();
             if (scores.length < 10) return true;
             const lowestTopScore = scores[scores.length - 1]?.score || 0;
@@ -457,7 +469,7 @@
     // Submit score to server
     async function submitScore(username, score) {
         const fingerprint = getFingerprint();
-        const response = await fetch('/api/scores', {
+        const response = await fetch(`${API_BASE}/api/scores`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, score, fingerprint })
@@ -475,7 +487,7 @@
     // Check if device has submitted a score recently (within 1 hour)
     async function getLockedNameForDevice() {
         try {
-            const res = await fetch('topscores.json');
+            const res = await fetch(`${API_BASE}/topscores.json`);
             const scores = await res.json();
             const fingerprint = getFingerprint();
             const oneHourAgo = Date.now() - (60 * 60 * 1000);
@@ -693,7 +705,7 @@
     async function loadTopScores() {
         if (!window.topScoresList) return;
         try {
-            const res = await fetch('topscores.json');
+            const res = await fetch(`${API_BASE}/topscores.json`);
             const scores = await res.json();
             topScores = scores.slice(0, 10);
             renderTopScores();
@@ -707,7 +719,7 @@
         if (!confirm(`Delete score #${index + 1}?`)) return;
         
         try {
-            const response = await fetch(`/api/scores/${index}`, {
+            const response = await fetch(`${API_BASE}/api/scores/${index}`, {
                 method: 'DELETE'
             });
             
@@ -796,8 +808,8 @@
     };
 
     // --- Version Info ---
-    const APP_VERSION = 'v1.0.3';
-    const APP_COMMIT = '8e4ab63';
+    const APP_VERSION = 'v1.1.7';
+    const APP_COMMIT = 'cd58c31';
     console.log(`%c Pitch Recognition Quiz ${APP_VERSION} (${APP_COMMIT}) `, 'background: #1e88e5; color: white; padding: 2px 6px; border-radius: 3px;');
     
     // --- Dev Mode Check ---
