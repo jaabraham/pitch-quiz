@@ -1,0 +1,192 @@
+[
+  {
+    "id": "792cead1-3200-4952-9119-c7ffa7867235",
+    "fingerprint": "TW96aWxsYS81LjAg",
+    "ipHash": "eff8e7ca506627fe",
+    "username": "Jeff",
+    "videoId": "8ZYPZIwj2u0",
+    "sessionStart": "2026-02-21T04:40:40.834Z",
+    "sessionEnd": "2026-02-21T04:41:05.756Z",
+    "score": 2660,
+    "totalClips": 5,
+    "durationSeconds": 25,
+    "events": [
+      {
+        "timestamp": "2026-02-21T04:40:40.834Z",
+        "type": "SESSION_START",
+        "data": {
+          "videoId": "8ZYPZIwj2u0",
+          "totalClips": 5
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:40:52.470Z",
+        "type": "ANSWER_WRONG",
+        "data": {
+          "clipIndex": 0,
+          "guessed": "Fastball",
+          "correct": "Offspeed",
+          "timeTaken": 11.41,
+          "pointsEarned": 0,
+          "runningScore": 0
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:40:55.750Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 1,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 1.17,
+          "pointsEarned": 883,
+          "runningScore": 883
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:40:57.895Z",
+        "type": "ANSWER_WRONG",
+        "data": {
+          "clipIndex": 2,
+          "guessed": "Fastball",
+          "correct": "Offspeed",
+          "timeTaken": 0.14,
+          "pointsEarned": 0,
+          "runningScore": 883
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:41:01.153Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 3,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 1.2,
+          "pointsEarned": 880,
+          "runningScore": 1763
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:41:04.255Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 4,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 1.02,
+          "pointsEarned": 897,
+          "runningScore": 2660
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:41:05.756Z",
+        "type": "SESSION_END",
+        "data": {
+          "finalScore": 2660,
+          "totalClips": 5,
+          "correctAnswers": 3,
+          "wrongAnswers": 2,
+          "percentageCorrect": 60
+        }
+      }
+    ],
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Vers",
+    "loggedAt": "2026-02-21T04:41:05.759Z"
+  },
+  {
+    "id": "2444edb3-364d-4548-8dc9-341059fb7369",
+    "fingerprint": "TW96aWxsYS81LjAg",
+    "ipHash": "eff8e7ca506627fe",
+    "username": "Jeff",
+    "videoId": "zztsRIouSBA",
+    "sessionStart": "2026-02-21T04:48:48.246Z",
+    "sessionEnd": "2026-02-21T04:49:03.955Z",
+    "score": 2679,
+    "totalClips": 5,
+    "durationSeconds": 16,
+    "events": [
+      {
+        "timestamp": "2026-02-21T04:48:48.246Z",
+        "type": "SESSION_START",
+        "data": {
+          "videoId": "zztsRIouSBA",
+          "totalClips": 5
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:48:49.913Z",
+        "type": "ANSWER_WRONG",
+        "data": {
+          "clipIndex": 0,
+          "guessed": "Fastball",
+          "correct": "Offspeed",
+          "timeTaken": 1.59,
+          "pointsEarned": 0,
+          "runningScore": 0
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:48:53.294Z",
+        "type": "ANSWER_WRONG",
+        "data": {
+          "clipIndex": 1,
+          "guessed": "Fastball",
+          "correct": "Offspeed",
+          "timeTaken": 1.42,
+          "pointsEarned": 0,
+          "runningScore": 0
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:48:56.796Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 2,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 1.53,
+          "pointsEarned": 846,
+          "runningScore": 846
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:49:00.038Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 3,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 1.25,
+          "pointsEarned": 875,
+          "runningScore": 1721
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:49:02.455Z",
+        "type": "ANSWER_CORRECT",
+        "data": {
+          "clipIndex": 4,
+          "guessed": "Fastball",
+          "correct": "Fastball",
+          "timeTaken": 0.41,
+          "pointsEarned": 958,
+          "runningScore": 2679
+        }
+      },
+      {
+        "timestamp": "2026-02-21T04:49:03.955Z",
+        "type": "SESSION_END",
+        "data": {
+          "finalScore": 2679,
+          "totalClips": 5,
+          "correctAnswers": 3,
+          "wrongAnswers": 2,
+          "percentageCorrect": 60
+        }
+      }
+    ],
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.3",
+    "loggedAt": "2026-02-21T04:49:03.957Z"
+  }
+]

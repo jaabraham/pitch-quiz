@@ -394,12 +394,14 @@
         <button id="back-to-front-btn" style="width:95%;padding:10px;font-size:1em;margin:10px 0;">Back to Home</button>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
     <script>
     // --- API Configuration ---
     // For local development, use empty string (relative URLs)
     // For GitHub Pages, update this to your Render backend URL
-    const API_BASE = 'https://pitch-quiz.onrender.com';  // Render backend URL
+    //const API_BASE = '';  // changed from Render backend URL to save locally
+	//const API_BASE = '';  // changed from Render backend URL to save locally
+	const API_BASE = window.location.origin;  // Auto-detect your domain
     
     // --- Fingerprint & Anonymous Auth System ---
     
@@ -455,7 +457,7 @@
     // Check if score qualifies for top 10
     async function isTopScore(score) {
         try {
-            const res = await fetch(`${API_BASE}/topscores.json`);
+            const res = await fetch(`${API_BASE}/api/topscores.json`);
             const scores = await res.json();
             if (scores.length < 10) return true;
             const lowestTopScore = scores[scores.length - 1]?.score || 0;
@@ -487,7 +489,7 @@
     // Check if device has submitted a score recently (within 1 hour)
     async function getLockedNameForDevice() {
         try {
-            const res = await fetch(`${API_BASE}/topscores.json`);
+            const res = await fetch(`${API_BASE}/api/topscores.json`);
             const scores = await res.json();
             const fingerprint = getFingerprint();
             const oneHourAgo = Date.now() - (60 * 60 * 1000);
@@ -705,7 +707,7 @@
     async function loadTopScores() {
         if (!window.topScoresList) return;
         try {
-            const res = await fetch(`${API_BASE}/topscores.json`);
+            const res = await fetch(`${API_BASE}/api/topscores.json`);
             const scores = await res.json();
             topScores = scores.slice(0, 10);
             renderTopScores();
@@ -860,18 +862,16 @@
         if (window.startQuizBtnOverlay) {
             window.startQuizBtnOverlay.onclick = function() {
                 if (window.startQuizOverlay) window.startQuizOverlay.style.display = 'none';
+                // Initialize session logging
+                if (typeof SessionLogger !== 'undefined') SessionLogger.init();
                 if (window.startQuiz) window.startQuiz();
             };
         }
     });
 
     // --- Start Quiz logic (called by overlay button) ---
-    window.startQuiz = function() {
-        if (window.player && typeof window.player.playVideo === 'function') {
-            window.player.playVideo();
-        }
-        if (window.startPlaybackTimer) window.startPlaybackTimer();
-    };
+    // Note: SessionLogger.init() is called in script.js version of startQuiz
+    // This just handles the button click to call the script.js version
     </script>
 </body>
 </html>

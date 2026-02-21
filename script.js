@@ -4,6 +4,98 @@ let answerWindows = []; // Will be loaded dynamically
 const checkIntervalMs = 100; // Check time more frequently for scoring accuracy
 const feedbackDisplayDurationMs = 1500; // How long to show CORRECT/WRONG overlay
 
+// --- Session Logging System ---
+const SessionLogger = {
+    events: [],
+    sessionStart: null,
+    sessionEnd: null,
+    fingerprint: null,
+    username: null,
+    
+    init() {
+        // Get fingerprint from localStorage (set by index.html)
+        this.fingerprint = localStorage.getItem('pitch_recognition_fp') || 'unknown';
+        this.username = localStorage.getItem('pitch_recognition_name') || null;
+        this.events = [];
+        this.sessionStart = new Date().toISOString();
+        this.sessionEnd = null;
+        this.logEvent('SESSION_START', { videoId, totalClips: answerWindows.length });
+    },
+    
+    logEvent(type, data = {}) {
+        const event = {
+            timestamp: new Date().toISOString(),
+            type: type,
+            data: data
+        };
+        this.events.push(event);
+        
+        // Also log to console for debugging
+        console.log(`[LOG] ${type}:`, data);
+    },
+    
+    logAnswer(clipIndex, answer, correctAnswer, timeTaken, pointsEarned, isCorrect) {
+        this.logEvent(isCorrect ? 'ANSWER_CORRECT' : 'ANSWER_WRONG', {
+            clipIndex,
+            guessed: answer,
+            correct: correctAnswer,
+            timeTaken: Math.round(timeTaken * 100) / 100,
+            pointsEarned,
+            runningScore: score
+        });
+    },
+    
+    logMissed(clipIndex, correctAnswer) {
+        this.logEvent('ANSWER_MISSED', {
+            clipIndex,
+            correct: correctAnswer,
+            runningScore: score
+        });
+    },
+    
+    logQuizEnd(finalScore, totalClips) {
+        this.sessionEnd = new Date().toISOString();
+        this.logEvent('SESSION_END', {
+            finalScore,
+            totalClips,
+            correctAnswers,
+            wrongAnswers: questionsAnswered - correctAnswers,
+            percentageCorrect: questionsAnswered === 0 ? 100 : Math.round((correctAnswers / questionsAnswered) * 100)
+        });
+    },
+    
+    async sendToServer() {
+        if (this.events.length === 0) return;
+        
+        try {
+            const API_BASE = window.location.origin;
+            const response = await fetch(`${API_BASE}/api/log`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fingerprint: this.fingerprint,
+                    username: this.username,
+                    sessionStart: this.sessionStart,
+                    sessionEnd: this.sessionEnd,
+                    score: score,
+                    events: this.events,
+                    videoId: videoId,
+                    totalClips: answerWindows.length
+                })
+            });
+            
+            if (response.ok) {
+                console.log('[LOG] Session logged successfully');
+            } else {
+                console.warn('[LOG] Failed to send log:', response.status);
+            }
+        } catch (err) {
+            console.warn('[LOG] Error sending log:', err);
+            // Silent fail - logging shouldn't break the game
+        }
+    }
+};
+
 // --- Load Video Data ---
 async function loadVideoData() {
     try {
@@ -211,6 +303,9 @@ window.startQuiz = function() {
     const firstWindow = answerWindows[0];
     const startTime = getFirstClipStartTime();
     console.log(`[CLIP] STARTING QUIZ: Clip 1 at ${firstWindow.startTime} (${startTime}s) - Answer: ${getAnswerString(firstWindow.correctAnswer)}`);
+    
+    // Initialize session logging
+    SessionLogger.init();
     
     // Hide the overlay
     if (window.startQuizOverlay) {
@@ -429,9 +524,11 @@ function handleAnswer(selectedAnswerString) {
         overlayClass = 'correct';
         overlayText = 'CORRECT!';
         console.log(`[CLIP] CORRECT: Clip ${currentWindowIndex + 1} - Guessed: ${selectedAnswerString}, Time: ${timeTaken.toFixed(2)}s, Points: ${pointsEarned}`);
+        SessionLogger.logAnswer(currentWindow.clipIndex, selectedAnswerString, correctAnswerString, timeTaken, pointsEarned, true);
     } else {
         feedbackMessage.textContent = `Clip ${currentWindow.clipIndex + 1}: Incorrect! (Was ${correctAnswerString})`;
         console.log(`[CLIP] WRONG: Clip ${currentWindowIndex + 1} - Guessed: ${selectedAnswerString}, Correct: ${correctAnswerString}, Time: ${timeTaken.toFixed(2)}s`);
+        SessionLogger.logAnswer(currentWindow.clipIndex, selectedAnswerString, correctAnswerString, timeTaken, 0, false);
     }
 
     // Update stats
@@ -558,6 +655,10 @@ function endQuiz() {
     finalScoreDisplay.textContent = score;
     finalTotalClipsDisplay.textContent = answerWindows.length;
     quizCompleteSection.classList.remove('hidden');
+    
+    // Log session end and send to server
+    SessionLogger.logQuizEnd(score, answerWindows.length);
+    SessionLogger.sendToServer();
 }
 
 
@@ -726,6 +827,11 @@ function showFrontPageOnly() {
 // --- Support for dynamic video selection ---
 window.startQuizForVideo = async function(newVideoId) {
     console.log(`[VIDEO] startQuizForVideo called with videoId: ${newVideoId}`);
+    
+    // Log video selection event if we already have a session
+    if (SessionLogger.sessionStart && !SessionLogger.sessionEnd) {
+        SessionLogger.logEvent('VIDEO_CHANGED', { fromVideoId: videoId, toVideoId: newVideoId });
+    }
     // Update videoId and URL
     videoId = newVideoId;
     if (window.history && window.history.replaceState) {
